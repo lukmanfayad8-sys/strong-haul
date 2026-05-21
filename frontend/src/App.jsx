@@ -1,3 +1,5 @@
+// Add at the top of App.jsx
+import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 
 const NAV_LINKS = ["Home", "Browse Trucks", "How It Works", "Pricing", "Contact"];
@@ -92,6 +94,8 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [statsVisible, setStatsVisible] = useState(false);
   const statsRef = useRef(null);
+  const navigate = useNavigate(); // ← ADD THIS LINE
+
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);
@@ -198,8 +202,8 @@ export default function App() {
 
         {/* CTA Buttons */}
         <div className="desktop-nav" style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-          <button className="btn-outline" style={{ padding: "0.6rem 1.25rem", fontSize: "0.82rem" }}>Log In</button>
-          <button className="btn-primary" style={{ padding: "0.6rem 1.25rem", fontSize: "0.82rem" }}>List Your Truck</button>
+         <a className="nav-link" onClick={() => navigate("/browse")}>Browse Trucks</a>
+          <a className="nav-link" onClick={() => navigate("/list-truck")}>List Your Truck</a>
         </div>
 
         {/* Mobile menu */}
@@ -254,8 +258,8 @@ export default function App() {
           </p>
 
           <div className="hero-animate hero-animate-4 hero-buttons" style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-            <button className="btn-primary" style={{ fontSize: "1rem", padding: "1rem 2.25rem" }}>Browse Trucks</button>
-            <button className="btn-outline" style={{ fontSize: "1rem", padding: "1rem 2.25rem" }}>List Your Vehicle</button>
+            <button className="btn-primary" style={{ fontSize: "1rem", padding: "1rem 2.25rem" }} onClick={() => navigate("/browse")}>Browse Trucks</button>
+            <button className="btn-outline" style={{ fontSize: "1rem", padding: "1rem 2.25rem" }} onClick={() => navigate("/list-truck")}>List Your Vehicle</button>
           </div>
 
           {/* Floating badge */}
