@@ -16,6 +16,7 @@ createRoot(document.getElementById("root")).render(
           <Route path="/browse" element={<BrowseTrucks />} />
           <Route path="/auth" element={<Auth />} />
         </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </GoogleOAuthProvider>
   </StrictMode>
 );
