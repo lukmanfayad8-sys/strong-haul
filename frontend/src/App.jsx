@@ -260,6 +260,7 @@ export default function App() {
           <div className="hero-animate hero-animate-4 hero-buttons" style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
             <button className="btn-primary" style={{ fontSize: "1rem", padding: "1rem 2.25rem" }} onClick={() => navigate("/browse")}>Browse Trucks</button>
             <button className="btn-outline" style={{ fontSize: "1rem", padding: "1rem 2.25rem" }} onClick={() => navigate("/list-truck")}>List Your Vehicle</button>
+            <button className="btn-outline" onClick={() => navigate("/auth")} style={{ padding: "0.6rem 1.25rem", fontSize: "0.82rem" }}>Log In</button>
           </div>
 
           {/* Floating badge */}
