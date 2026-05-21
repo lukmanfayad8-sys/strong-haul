@@ -260,8 +260,7 @@ export default function App() {
 
           <div className="hero-animate hero-animate-4 hero-buttons" style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
             <button className="btn-primary" style={{ fontSize: "1rem", padding: "1rem 2.25rem" }} onClick={() => navigate("/browse")}>Browse Trucks</button>
-            <button className="btn-outline" style={{ fontSize: "1rem", padding: "1rem 2.25rem" }} onClick={() => navigate("/list-truck")}>List Your Vehicle</button>
-            <button className="btn-outline" onClick={() => navigate("/auth")} style={{ padding: "0.6rem 1.25rem", fontSize: "0.82rem" }}>Log In</button>
+            <button className="btn-outline" style={{ fontSize: "1rem", padding: "1rem 2.25rem" }} onClick={() => navigate("/auth")}>List Your Vehicle</button>
           </div>
 
           {/* Floating badge */}
@@ -322,7 +321,7 @@ export default function App() {
               <span className="section-tag">Live Listings</span>
               <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "clamp(2rem, 4vw, 3.5rem)" }}>AVAILABLE NOW</h2>
             </div>
-            <a style={{ color: "#F97316", cursor: "pointer", fontSize: "0.95rem", fontWeight: 500, textDecoration: "none", borderBottom: "1px solid #F97316", paddingBottom: "2px" }}>View All Listings →</a>
+            <a onClick={() => navigate("/browse")} style={{ color: "#F97316", cursor: "pointer", fontSize: "0.95rem", fontWeight: 500, textDecoration: "none", borderBottom: "1px solid #F97316", paddingBottom: "2px" }}>View All Listings →</a>
           </div>
 
           <div className="listings-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1.25rem" }}>
@@ -423,8 +422,8 @@ export default function App() {
           </h2>
           <p style={{ color: "#9CA3AF", marginBottom: "2.5rem", fontSize: "1.05rem" }}>Join thousands of owners and hirers on Strong Haul today.</p>
           <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
-            <button className="btn-primary" style={{ fontSize: "1rem", padding: "1rem 2.25rem" }}>List Your Vehicle</button>
-            <button className="btn-outline" style={{ fontSize: "1rem", padding: "1rem 2.25rem" }}>Browse Trucks</button>
+            <button className="btn-primary" style={{ fontSize: "1rem", padding: "1rem 2.25rem" }} onClick={() => navigate("/auth")}>List Your Vehicle</button>
+            <button className="btn-outline" style={{ fontSize: "1rem", padding: "1rem 2.25rem" }} onClick={() => navigate("/browse")}>Browse Trucks</button>
           </div>
         </div>
       </section>
