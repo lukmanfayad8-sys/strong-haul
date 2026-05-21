@@ -1,3 +1,4 @@
+import OwnerDashboard from "./pages/OwnerDashboard.jsx";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -15,6 +16,7 @@ createRoot(document.getElementById("root")).render(
           <Route path="/" element={<App />} />
           <Route path="/browse" element={<BrowseTrucks />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/dashboard" element={<OwnerDashboard />} />
         </Routes>
       </BrowserRouter>
     </GoogleOAuthProvider>
