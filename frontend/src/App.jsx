@@ -200,11 +200,12 @@ export default function App() {
           {NAV_LINKS.map(link => <a key={link} className="nav-link">{link}</a>)}
         </div>
 
-        {/* CTA Buttons */}
-        <div className="desktop-nav" style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-         <a className="nav-link" onClick={() => navigate("/browse")}>Browse Trucks</a>
-          <a className="nav-link" onClick={() => navigate("/list-truck")}>List Your Truck</a>
-        </div>
+        
+      {/* CTA Buttons */}
+<div className="desktop-nav" style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+  <button className="btn-outline" onClick={() => navigate("/auth")} style={{ padding: "0.6rem 1.25rem", fontSize: "0.82rem" }}>Log In</button>
+  <button className="btn-primary" onClick={() => navigate("/auth")} style={{ padding: "0.6rem 1.25rem", fontSize: "0.82rem" }}>List Your Truck</button>
+</div>
 
         {/* Mobile menu */}
         <button className="mobile-menu-btn" onClick={() => setMenuOpen(!menuOpen)}
