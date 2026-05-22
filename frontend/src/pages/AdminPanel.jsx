@@ -271,14 +271,6 @@ function AdminSupportSection({ employees, setEmployees }) {
 
   const toggleEmp = (id) => setEmployees(prev => prev.map(e => e.id === id ? { ...e, status: e.status === "active" ? "inactive" : "active" } : e));
 
-  const F = ({ label, field, placeholder }) => (
-    <div>
-      <label style={LABEL}>{label}</label>
-      <input style={{ ...INPUT, ...(errors[field] ? { borderColor: "#ef4444" } : {}) }} placeholder={placeholder} value={form[field]} onChange={e => { setForm(f => ({ ...f, [field]: e.target.value })); setErrors(er => ({ ...er, [field]: "" })); }} />
-      {errors[field] && <p style={{ color: "#ef4444", fontSize: "0.73rem", marginTop: "0.2rem" }}>{errors[field]}</p>}
-    </div>
-  );
-
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.75rem" }}>
@@ -525,7 +517,7 @@ function AnnouncementsSection() {
   );
 }
 
-function SubscriptionsSection({ users, setUsers }) {
+function SubscriptionsSection({ users }) {
   const [prices, setPrices] = useState({ Premium: "29", Enterprise: "Custom" });
   const [editing, setEditing] = useState(null);
   const [tempPrice, setTempPrice] = useState("");
