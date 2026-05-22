@@ -2,7 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { AuthProvider } from "./pages/AuthContext.jsx";
+import { AuthProvider } from "./context/AuthContext.jsx";
 import App from "./App.jsx";
 import BrowseTrucks from "./pages/BrowseTrucks.jsx";
 import Auth from "./pages/Auth.jsx";
@@ -14,7 +14,8 @@ import "./index.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
+    <GoogleOAuthProvider clientId="467820710124-532ag0m3lde4iue0st5jda4sq6d6jq9v.apps.googleusercontent.com
+">
       <BrowserRouter>
         <AuthProvider>
           <Routes>
