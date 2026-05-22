@@ -160,9 +160,15 @@ export default function OwnerDashboard() {
           {/* Owner Info */}
           <div style={{ padding: "1.25rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <div style={{ width: 40, height: 40, background: "#F97316", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.2rem" }}>{OWNER.avatar}</div>
+              {user?.avatar ? (
+                <img src={user.avatar} style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }} />
+              ) : (
+                <div style={{ width: 40, height: 40, background: "#F97316", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.2rem" }}>
+                  {user?.name?.charAt(0) ?? "U"}
+                </div>
+              )}
               <div>
-                <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>{OWNER.name}</div>
+                <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>{user?.name ?? "Owner"}</div>
                 <div style={{ background: "rgba(249,115,22,0.15)", color: "#F97316", fontSize: "0.68rem", fontWeight: 700, padding: "0.15rem 0.5rem", display: "inline-block", marginTop: "0.2rem" }}>{OWNER.plan}</div>
               </div>
             </div>
@@ -183,7 +189,7 @@ export default function OwnerDashboard() {
 
           {/* Logout */}
           <div style={{ padding: "1rem 1.25rem", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-            <div className="sidebar-link" onClick={() => navigate("/")} style={{ color: "#ef4444", borderLeft: "none", padding: "0.75rem 0" }}>
+            <div className="sidebar-link" onClick={() => { logout(); navigate("/"); }} style={{ color: "#ef4444", borderLeft: "none", padding: "0.75rem 0" }}>
               <span>🚪</span><span>Log Out</span>
             </div>
           </div>
@@ -216,7 +222,7 @@ export default function OwnerDashboard() {
             {active === "dashboard" && (
               <div>
                 <span className="section-tag">Overview</span>
-                <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "2rem", marginBottom: "2rem" }}>Welcome back, {OWNER.name.split(" ")[0]} 👋</h2>
+                <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "2rem", marginBottom: "2rem" }}>Welcome back, {user?.name?.split(" ")[0] ?? "Owner"} 👋</h2>
 
                 {/* Stats */}
                 <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1rem", marginBottom: "2.5rem" }}>
