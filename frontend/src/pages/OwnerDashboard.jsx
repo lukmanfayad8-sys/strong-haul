@@ -1,3 +1,4 @@
+import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -35,6 +36,7 @@ const NAV_ITEMS = [
 
 export default function OwnerDashboard() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [active, setActive] = useState("dashboard");
   const [vehicles, setVehicles] = useState(VEHICLES);
   const [notifications, setNotifications] = useState(NOTIFICATIONS);
