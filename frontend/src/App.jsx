@@ -263,11 +263,10 @@ export default function App() {
             Strong Haul connects truck and heavy machinery owners with businesses that need them — fast, simple, and worldwide.
           </p>
 
-          <div className="hero-animate hero-animate-4 hero-buttons" style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-            <button className="btn-primary" style={{ fontSize: "1rem", padding: "1rem 2.25rem" }} onClick={() => navigate("/browse")}>Browse Trucks</button>
-           <button className="btn-primary" onClick={() => navigate("/dashboard")} style={{ padding: "0.6rem 1.25rem", fontSize: "0.82rem" }}>List Your Truck</button>
-            <button className="btn-outline" style={{ fontSize: "1rem", padding: "1rem 2.25rem" }} onClick={() => navigate("/auth")}>List Your Vehicle</button>
-          </div>
+        <div className="hero-animate hero-animate-4 hero-buttons" style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+         <button className="btn-primary" style={{ fontSize: "1rem", padding: "1rem 2.25rem" }} onClick={() => navigate("/browse")}>Browse Trucks</button>
+         <button className="btn-outline" style={{ fontSize: "1rem", padding: "1rem 2.25rem" }} onClick={() => navigate("/auth")}>List Your Vehicle</button>
+      </div>
 
           {/* Floating badge */}
           <div style={{ marginTop: "4rem", display: "inline-flex", alignItems: "center", gap: "0.75rem", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", padding: "0.75rem 1.25rem" }}>
