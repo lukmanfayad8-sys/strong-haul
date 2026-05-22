@@ -1,0 +1,728 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+// ─── Mock Data ────────────────────────────────────────────────────────────────
+const SUPER_ADMIN = { name: "Admin", username: "superadmin", role: "Super Admin", avatar: "A" };
+
+const MOCK_USERS = [
+  { id: 1, username: "kwameasante", email: "kwame@example.com", truckType: "Tipper Truck", phone: "+233 24 123 4567", plan: "Premium", status: "active", joined: "Jan 2025", listings: 3 },
+  { id: 2, username: "chidiokafor", email: "chidi@example.com", truckType: "Excavator", phone: "+234 80 234 5678", plan: "Enterprise", status: "active", joined: "Feb 2025", listings: 12 },
+  { id: 3, username: "gracewanjiku", email: "grace@example.com", truckType: "Flatbed Truck", phone: "+254 71 345 6789", plan: "Free Trial", status: "inactive", joined: "Mar 2025", listings: 1 },
+  { id: 4, username: "amara.diallo", email: "amara@example.com", truckType: "Tanker Truck", phone: "+221 77 456 7890", plan: "Premium", status: "active", joined: "Mar 2025", listings: 5 },
+  { id: 5, username: "tunde.adeyemi", email: "tunde@example.com", truckType: "Crane", phone: "+234 80 567 8901", plan: "Premium", status: "active", joined: "Apr 2025", listings: 4 },
+  { id: 6, username: "fatou.ndiaye", email: "fatou@example.com", truckType: "Lowboy", phone: "+221 70 678 9012", plan: "Free Trial", status: "inactive", joined: "Apr 2025", listings: 2 },
+  { id: 7, username: "emeka.osei", email: "emeka@example.com", truckType: "Tipper Truck", phone: "+233 20 789 0123", plan: "Enterprise", status: "active", joined: "May 2025", listings: 19 },
+];
+
+const MOCK_COMPLAINTS = [
+  { id: 1, from: "kwame@example.com", subject: "Listing not showing in search", category: "Listing Problem", message: "My Mack Granite Tipper does not appear when I search for tipper trucks in Accra.", date: "May 20, 2026", status: "open" },
+  { id: 2, from: "grace@example.com", subject: "Subscription charge error", category: "Billing Issue", message: "I was charged twice for my Premium plan this month. Please refund one charge.", date: "May 19, 2026", status: "open" },
+  { id: 3, from: "amara@example.com", subject: "Cannot update phone number", category: "Technical Support", message: "The profile page throws an error when I try to save a new phone number.", date: "May 17, 2026", status: "resolved" },
+  { id: 4, from: "tunde@example.com", subject: "Fake contact enquiry", category: "Report Abuse", message: "I received an enquiry from someone using a fake email. Please investigate this account.", date: "May 15, 2026", status: "open" },
+  { id: 5, from: "emeka@example.com", subject: "Analytics data missing", category: "Technical Support", message: "My analytics dashboard shows no data for the past 7 days.", date: "May 14, 2026", status: "resolved" },
+];
+
+const MOCK_EMPLOYEES = [
+  { id: 1, name: "Ama Boateng", username: "ama.admin", email: "ama@stronghaul.com", section: "Users", status: "active", since: "Jan 2025" },
+  { id: 2, name: "Seun Oladele", username: "seun.admin", email: "seun@stronghaul.com", section: "Complaints", status: "active", since: "Feb 2025" },
+  { id: 3, name: "Miriam Waweru", username: "miriam.admin", email: "miriam@stronghaul.com", section: "Subscriptions", status: "inactive", since: "Mar 2025" },
+  { id: 4, name: "Kofi Mensah", username: "kofi.admin", email: "kofi@stronghaul.com", section: "Announcements", status: "active", since: "Apr 2025" },
+];
+
+const MONTHLY_DATA = [
+  { month: "Nov", subs: 18 }, { month: "Dec", subs: 24 }, { month: "Jan", subs: 31 },
+  { month: "Feb", subs: 28 }, { month: "Mar", subs: 42 }, { month: "Apr", subs: 38 },
+  { month: "May", subs: 51 },
+];
+
+const SECTIONS = ["Users", "Complaints", "Subscriptions", "Announcements", "Admin-Support"];
+
+const NAV_ITEMS = [
+  { id: "dashboard", label: "Dashboard", icon: "◈" },
+  { id: "users", label: "Users", icon: "◉" },
+  { id: "support", label: "Admin-Support", icon: "⊕" },
+  { id: "complaints", label: "Complaints", icon: "⚑" },
+  { id: "employees", label: "Employees", icon: "⊞" },
+  { id: "announcements", label: "Announcements", icon: "◎" },
+  { id: "subscriptions", label: "Subscriptions", icon: "★" },
+];
+
+// ─── Shared styles ────────────────────────────────────────────────────────────
+const TAG = { display: "inline-block", background: "rgba(249,115,22,0.15)", color: "#F97316", fontSize: "0.72rem", letterSpacing: "0.15em", textTransform: "uppercase", padding: "0.3rem 0.85rem", marginBottom: "0.5rem", borderLeft: "2px solid #F97316" };
+const H2 = { fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "2.4rem", letterSpacing: "-0.01em", lineHeight: 1 };
+const LABEL = { color: "#9CA3AF", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "0.4rem" };
+const INPUT = { width: "100%", background: "#1F2937", border: "1px solid rgba(255,255,255,0.08)", color: "#fff", padding: "0.75rem 1rem", fontFamily: "'DM Sans', sans-serif", fontSize: "0.88rem", outline: "none", display: "block" };
+const MODAL_OVL = { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" };
+const MODAL_BOX = { background: "#111827", border: "1px solid rgba(249,115,22,0.3)", padding: "2.25rem", width: "100%", maxWidth: 520, maxHeight: "90vh", overflowY: "auto" };
+const TH = { padding: "0.75rem 1rem", color: "#6B7280", fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.08em", textAlign: "left", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "#0A0A0A", whiteSpace: "nowrap" };
+const TD = { padding: "0.85rem 1rem", fontSize: "0.85rem", borderBottom: "1px solid rgba(255,255,255,0.04)", verticalAlign: "middle" };
+
+const PLAN_COLOR = { Premium: "#F97316", Enterprise: "#a855f7", "Free Trial": "#6B7280" };
+const STATUS_STYLE = (s) => ({ background: s === "active" ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)", color: s === "active" ? "#22c55e" : "#ef4444", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.07em", padding: "0.2rem 0.6rem", textTransform: "uppercase" });
+
+// ─── Sections ─────────────────────────────────────────────────────────────────
+
+function DashboardSection({ users, complaints }) {
+  const activeSubs = users.filter(u => u.status === "active").length;
+  const premium = users.filter(u => u.plan === "Premium").length;
+  const enterprise = users.filter(u => u.plan === "Enterprise").length;
+  const openComplaints = complaints.filter(c => c.status === "open").length;
+  const max = Math.max(...MONTHLY_DATA.map(d => d.subs));
+
+  return (
+    <div>
+      <div style={{ marginBottom: "2rem" }}>
+        <span style={TAG}>Overview</span>
+        <h2 style={H2}>ADMIN DASHBOARD</h2>
+        <p style={{ color: "#6B7280", fontSize: "0.88rem", marginTop: "0.4rem" }}>Platform health at a glance.</p>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1rem", marginBottom: "2rem" }}>
+        {[
+          { value: users.length, label: "Total Owners", sub: "Registered accounts", accent: true },
+          { value: activeSubs, label: "Active Owners", sub: `${users.length - activeSubs} inactive` },
+          { value: premium + enterprise, label: "Paid Subscribers", sub: `${premium} Premium · ${enterprise} Enterprise` },
+          { value: openComplaints, label: "Open Complaints", sub: `${complaints.length - openComplaints} resolved` },
+        ].map(s => (
+          <div key={s.label} style={{ background: "#111827", border: `1px solid ${s.accent ? "rgba(249,115,22,0.3)" : "rgba(255,255,255,0.06)"}`, padding: "1.5rem", position: "relative", overflow: "hidden" }}>
+            {s.accent && <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "#F97316" }} />}
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "2.4rem", color: s.accent ? "#F97316" : "#fff", lineHeight: 1 }}>{s.value}</div>
+            <div style={{ color: "#9CA3AF", fontSize: "0.78rem", marginTop: "0.35rem", textTransform: "uppercase", letterSpacing: "0.07em" }}>{s.label}</div>
+            <div style={{ color: "#4B5563", fontSize: "0.73rem", marginTop: "0.2rem" }}>{s.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+        {/* Monthly chart */}
+        <div style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", padding: "1.75rem" }}>
+          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "1rem", letterSpacing: "0.06em", color: "#F97316", marginBottom: "1.5rem" }}>MONTHLY SUBSCRIBERS</div>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", height: 120 }}>
+            {MONTHLY_DATA.map(d => (
+              <div key={d.month} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "0.75rem", color: "#6B7280" }}>{d.subs}</div>
+                <div style={{ width: "100%", background: d.month === "May" ? "#F97316" : "rgba(249,115,22,0.25)", height: `${(d.subs / max) * 90}px`, transition: "height 0.3s" }} />
+                <div style={{ color: "#6B7280", fontSize: "0.7rem" }}>{d.month}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Plan breakdown */}
+        <div style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", padding: "1.75rem" }}>
+          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "1rem", letterSpacing: "0.06em", color: "#F97316", marginBottom: "1.5rem" }}>PLAN DISTRIBUTION</div>
+          {[["Free Trial", users.filter(u => u.plan === "Free Trial").length, "#6B7280"], ["Premium", premium, "#F97316"], ["Enterprise", enterprise, "#a855f7"]].map(([plan, count, color]) => (
+            <div key={plan} style={{ marginBottom: "1.1rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.4rem" }}>
+                <span style={{ color: "#D1D5DB", fontSize: "0.85rem" }}>{plan}</span>
+                <span style={{ color, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>{count}</span>
+              </div>
+              <div style={{ height: 6, background: "rgba(255,255,255,0.06)", borderRadius: 3 }}>
+                <div style={{ height: "100%", background: color, borderRadius: 3, width: `${(count / users.length) * 100}%`, transition: "width 0.5s" }} />
+              </div>
+            </div>
+          ))}
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "1rem", marginTop: "0.5rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "#6B7280", fontSize: "0.8rem" }}>Total registered owners</span>
+              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, color: "#fff" }}>{users.length}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent complaints */}
+      <div style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", padding: "1.75rem", marginTop: "1.5rem" }}>
+        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "1rem", letterSpacing: "0.06em", color: "#F97316", marginBottom: "1.25rem" }}>RECENT COMPLAINTS</div>
+        {complaints.slice(0, 3).map(c => (
+          <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.8rem 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: "0.88rem", marginBottom: "0.15rem" }}>{c.subject}</div>
+              <div style={{ color: "#6B7280", fontSize: "0.78rem" }}>{c.from} · {c.date}</div>
+            </div>
+            <span style={STATUS_STYLE(c.status === "open" ? "inactive" : "active")}>{c.status}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function UsersSection({ users, setUsers }) {
+  const [search, setSearch] = useState("");
+  const [planFilter, setPlanFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [selected, setSelected] = useState(null);
+
+  const filtered = users.filter(u => {
+    const q = search.toLowerCase();
+    const matchSearch = !q || u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.truckType.toLowerCase().includes(q);
+    const matchPlan = planFilter === "All" || u.plan === planFilter;
+    const matchStatus = statusFilter === "All" || u.status === statusFilter;
+    return matchSearch && matchPlan && matchStatus;
+  });
+
+  const toggleStatus = (id) => setUsers(us => us.map(u => u.id === id ? { ...u, status: u.status === "active" ? "inactive" : "active" } : u));
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.75rem" }}>
+        <div><span style={TAG}>Registry</span><h2 style={H2}>USERS</h2></div>
+        <div style={{ color: "#6B7280", fontSize: "0.85rem" }}>{filtered.length} of {users.length} owners</div>
+      </div>
+
+      {/* Filters */}
+      <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.25rem", flexWrap: "wrap" }}>
+        <input style={{ ...INPUT, width: 240 }} placeholder="Search username, email, type…" value={search} onChange={e => setSearch(e.target.value)} />
+        <select style={{ ...INPUT, width: 150 }} value={planFilter} onChange={e => setPlanFilter(e.target.value)}>
+          {["All", "Free Trial", "Premium", "Enterprise"].map(p => <option key={p}>{p}</option>)}
+        </select>
+        <select style={{ ...INPUT, width: 140 }} value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+          {["All", "active", "inactive"].map(s => <option key={s}>{s}</option>)}
+        </select>
+      </div>
+
+      {/* Table */}
+      <div style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr>
+              {["Username", "Email", "Truck Type", "Phone", "Plan", "Listings", "Status", "Actions"].map(h => <th key={h} style={TH}>{h}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((u, i) => (
+              <tr key={u.id} style={{ background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)", cursor: "pointer" }} onClick={() => setSelected(u)}>
+                <td style={TD}><span style={{ fontWeight: 600 }}>@{u.username}</span></td>
+                <td style={{ ...TD, color: "#9CA3AF" }}>{u.email}</td>
+                <td style={TD}>{u.truckType}</td>
+                <td style={{ ...TD, color: "#9CA3AF" }}>{u.phone}</td>
+                <td style={TD}><span style={{ color: PLAN_COLOR[u.plan], fontWeight: 600, fontSize: "0.82rem" }}>{u.plan}</span></td>
+                <td style={{ ...TD, textAlign: "center" }}>{u.listings}</td>
+                <td style={TD} onClick={e => e.stopPropagation()}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }} onClick={() => toggleStatus(u.id)}>
+                    <div style={{ width: 28, height: 16, background: u.status === "active" ? "#F97316" : "#374151", borderRadius: 8, position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
+                      <div style={{ position: "absolute", top: 2, left: u.status === "active" ? 14 : 2, width: 12, height: 12, background: "#fff", borderRadius: "50%", transition: "left 0.2s" }} />
+                    </div>
+                    <span style={{ ...STATUS_STYLE(u.status) }}>{u.status}</span>
+                  </div>
+                </td>
+                <td style={TD} onClick={e => e.stopPropagation()}>
+                  <button onClick={() => setSelected(u)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.12)", color: "#9CA3AF", padding: "0.3rem 0.75rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>View</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {filtered.length === 0 && <div style={{ padding: "2.5rem", textAlign: "center", color: "#4B5563" }}>No users match your filters.</div>}
+      </div>
+
+      {/* User detail modal */}
+      {selected && (
+        <div style={MODAL_OVL} onClick={() => setSelected(null)}>
+          <div style={{ ...MODAL_BOX, maxWidth: 460 }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1.75rem" }}>
+              <div>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.6rem" }}>@{selected.username}</div>
+                <div style={{ color: "#6B7280", fontSize: "0.82rem", marginTop: "0.2rem" }}>Member since {selected.joined}</div>
+              </div>
+              <span style={STATUS_STYLE(selected.status)}>{selected.status}</span>
+            </div>
+            {[["Email", selected.email], ["Phone", selected.phone], ["Truck Type", selected.truckType], ["Active Listings", selected.listings], ["Plan", selected.plan]].map(([k, v]) => (
+              <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "0.75rem 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                <span style={{ color: "#6B7280", fontSize: "0.85rem" }}>{k}</span>
+                <span style={{ fontWeight: 600, fontSize: "0.85rem", color: k === "Plan" ? PLAN_COLOR[v] : "#D1D5DB" }}>{v}</span>
+              </div>
+            ))}
+            <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.75rem" }}>
+              <button onClick={() => { toggleStatus(selected.id); setSelected(null); }} style={{ flex: 1, background: selected.status === "active" ? "rgba(239,68,68,0.15)" : "rgba(34,197,94,0.15)", color: selected.status === "active" ? "#ef4444" : "#22c55e", border: `1px solid ${selected.status === "active" ? "rgba(239,68,68,0.3)" : "rgba(34,197,94,0.3)"}`, padding: "0.75rem", fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: "0.85rem", cursor: "pointer" }}>
+                {selected.status === "active" ? "Deactivate" : "Activate"}
+              </button>
+              <button onClick={() => setSelected(null)} style={{ flex: 1, background: "transparent", border: "1px solid rgba(255,255,255,0.15)", color: "#9CA3AF", padding: "0.75rem", fontFamily: "'DM Sans', sans-serif", fontSize: "0.85rem", cursor: "pointer" }}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AdminSupportSection({ employees, setEmployees }) {
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ name: "", username: "", email: "", section: "Users" });
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const e = {};
+    if (!form.name.trim()) e.name = "Required";
+    if (!form.username.trim()) e.username = "Required";
+    if (!form.email.trim()) e.email = "Required";
+    return e;
+  };
+
+  const handleAdd = () => {
+    const e = validate();
+    if (Object.keys(e).length) { setErrors(e); return; }
+    setEmployees(prev => [...prev, { id: Date.now(), ...form, status: "active", since: "May 2026" }]);
+    setShowForm(false);
+    setForm({ name: "", username: "", email: "", section: "Users" });
+    setErrors({});
+  };
+
+  const toggleEmp = (id) => setEmployees(prev => prev.map(e => e.id === id ? { ...e, status: e.status === "active" ? "inactive" : "active" } : e));
+
+  const F = ({ label, field, placeholder }) => (
+    <div>
+      <label style={LABEL}>{label}</label>
+      <input style={{ ...INPUT, ...(errors[field] ? { borderColor: "#ef4444" } : {}) }} placeholder={placeholder} value={form[field]} onChange={e => { setForm(f => ({ ...f, [field]: e.target.value })); setErrors(er => ({ ...er, [field]: "" })); }} />
+      {errors[field] && <p style={{ color: "#ef4444", fontSize: "0.73rem", marginTop: "0.2rem" }}>{errors[field]}</p>}
+    </div>
+  );
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.75rem" }}>
+        <div><span style={TAG}>Access</span><h2 style={H2}>ADMIN-SUPPORT</h2></div>
+        <button className="btn-primary" onClick={() => setShowForm(true)} style={{ padding: "0.6rem 1.4rem", fontSize: "0.82rem" }}>+ Add Sub-Admin</button>
+      </div>
+
+      <div style={{ background: "rgba(249,115,22,0.07)", border: "1px solid rgba(249,115,22,0.18)", padding: "1rem 1.25rem", marginBottom: "1.5rem", fontSize: "0.85rem", color: "#9CA3AF", lineHeight: 1.6 }}>
+        Super admin assigns sub-admins to specific sections. Each sub-admin can only access their assigned section. Use the toggle to activate or deactivate access.
+      </div>
+
+      <div style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr>{["Name", "Username", "Email", "Assigned Section", "Status", "Since", "Access"].map(h => <th key={h} style={TH}>{h}</th>)}</tr>
+          </thead>
+          <tbody>
+            {employees.map((emp, i) => (
+              <tr key={emp.id} style={{ background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)" }}>
+                <td style={{ ...TD, fontWeight: 600 }}>{emp.name}</td>
+                <td style={{ ...TD, color: "#9CA3AF" }}>@{emp.username}</td>
+                <td style={{ ...TD, color: "#9CA3AF" }}>{emp.email}</td>
+                <td style={TD}><span style={{ background: "rgba(249,115,22,0.12)", color: "#F97316", fontSize: "0.75rem", padding: "0.2rem 0.6rem", fontWeight: 600 }}>{emp.section}</span></td>
+                <td style={TD}><span style={STATUS_STYLE(emp.status)}>{emp.status}</span></td>
+                <td style={{ ...TD, color: "#6B7280" }}>{emp.since}</td>
+                <td style={TD}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }} onClick={() => toggleEmp(emp.id)}>
+                    <div style={{ width: 28, height: 16, background: emp.status === "active" ? "#F97316" : "#374151", borderRadius: 8, position: "relative", transition: "background 0.2s" }}>
+                      <div style={{ position: "absolute", top: 2, left: emp.status === "active" ? 14 : 2, width: 12, height: 12, background: "#fff", borderRadius: "50%", transition: "left 0.2s" }} />
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {showForm && (
+        <div style={MODAL_OVL} onClick={() => setShowForm(false)}>
+          <div style={MODAL_BOX} onClick={e => e.stopPropagation()}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.6rem", marginBottom: "1.75rem" }}>ADD SUB-ADMIN</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <F label="Full Name" field="name" placeholder="e.g. Ama Boateng" />
+              <F label="Username" field="username" placeholder="e.g. ama.admin" />
+              <F label="Email" field="email" placeholder="e.g. ama@stronghaul.com" />
+              <div>
+                <label style={LABEL}>Assigned Section</label>
+                <select style={INPUT} value={form.section} onChange={e => setForm(f => ({ ...f, section: e.target.value }))}>
+                  {SECTIONS.map(s => <option key={s}>{s}</option>)}
+                </select>
+              </div>
+              <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
+                <button className="btn-primary" onClick={handleAdd} style={{ flex: 1 }}>Add Sub-Admin</button>
+                <button className="btn-outline" onClick={() => setShowForm(false)} style={{ flex: 1 }}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ComplaintsSection({ complaints, setComplaints }) {
+  const [selected, setSelected] = useState(null);
+  const [filter, setFilter] = useState("All");
+
+  const filtered = filter === "All" ? complaints : complaints.filter(c => c.status === filter);
+  const resolve = (id) => { setComplaints(cs => cs.map(c => c.id === id ? { ...c, status: "resolved" } : c)); setSelected(null); };
+
+  const CATEGORY_COLOR = { "Listing Problem": "#F97316", "Billing Issue": "#ef4444", "Technical Support": "#3b82f6", "Report Abuse": "#a855f7", "General Enquiry": "#22c55e" };
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.75rem" }}>
+        <div><span style={TAG}>Inbox</span><h2 style={H2}>COMPLAINTS</h2></div>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          {["All", "open", "resolved"].map(f => (
+            <button key={f} onClick={() => setFilter(f)} style={{ background: filter === f ? "#F97316" : "transparent", color: filter === f ? "#fff" : "#6B7280", border: `1px solid ${filter === f ? "#F97316" : "rgba(255,255,255,0.1)"}`, padding: "0.4rem 1rem", fontSize: "0.78rem", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", textTransform: "capitalize", letterSpacing: "0.05em" }}>{f}</button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+        {filtered.map(c => (
+          <div key={c.id} onClick={() => setSelected(c)} style={{ background: "#111827", border: `1px solid ${c.status === "open" ? "rgba(249,115,22,0.2)" : "rgba(255,255,255,0.05)"}`, padding: "1.25rem 1.5rem", cursor: "pointer", transition: "all 0.2s", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", marginBottom: "0.4rem" }}>
+                <span style={{ background: `${CATEGORY_COLOR[c.category] || "#6B7280"}20`, color: CATEGORY_COLOR[c.category] || "#6B7280", fontSize: "0.7rem", fontWeight: 700, padding: "0.15rem 0.6rem", letterSpacing: "0.06em" }}>{c.category}</span>
+                {c.status === "open" && <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#F97316", display: "inline-block" }} />}
+              </div>
+              <div style={{ fontWeight: 600, fontSize: "0.9rem", marginBottom: "0.2rem" }}>{c.subject}</div>
+              <div style={{ color: "#6B7280", fontSize: "0.78rem" }}>{c.from} · {c.date}</div>
+            </div>
+            <span style={STATUS_STYLE(c.status === "open" ? "inactive" : "active")}>{c.status}</span>
+          </div>
+        ))}
+        {filtered.length === 0 && <div style={{ padding: "3rem", textAlign: "center", color: "#4B5563", background: "#111827", border: "1px solid rgba(255,255,255,0.04)" }}>No complaints in this category.</div>}
+      </div>
+
+      {selected && (
+        <div style={MODAL_OVL} onClick={() => setSelected(null)}>
+          <div style={MODAL_BOX} onClick={e => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem" }}>
+              <div>
+                <span style={{ background: `${CATEGORY_COLOR[selected.category] || "#6B7280"}20`, color: CATEGORY_COLOR[selected.category] || "#6B7280", fontSize: "0.7rem", fontWeight: 700, padding: "0.2rem 0.7rem", letterSpacing: "0.06em", display: "inline-block", marginBottom: "0.5rem" }}>{selected.category}</span>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.5rem" }}>{selected.subject}</div>
+              </div>
+              <span style={STATUS_STYLE(selected.status === "open" ? "inactive" : "active")}>{selected.status}</span>
+            </div>
+            <div style={{ background: "#0A0A0A", padding: "1.25rem", marginBottom: "1.5rem", lineHeight: 1.7, color: "#D1D5DB", fontSize: "0.9rem" }}>{selected.message}</div>
+            <div style={{ display: "flex", justifyContent: "space-between", color: "#6B7280", fontSize: "0.78rem", marginBottom: "1.5rem" }}>
+              <span>From: {selected.from}</span><span>{selected.date}</span>
+            </div>
+            <div style={{ display: "flex", gap: "0.75rem" }}>
+              {selected.status === "open" && <button onClick={() => resolve(selected.id)} className="btn-primary" style={{ flex: 1 }}>Mark Resolved</button>}
+              <button onClick={() => setSelected(null)} className="btn-outline" style={{ flex: 1 }}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EmployeesSection({ employees }) {
+  return (
+    <div>
+      <div style={{ marginBottom: "1.75rem" }}>
+        <span style={TAG}>Team</span>
+        <h2 style={H2}>EMPLOYEES</h2>
+        <p style={{ color: "#6B7280", fontSize: "0.85rem", marginTop: "0.4rem" }}>All sub-admins added by super admin. Manage access from Admin-Support.</p>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1rem" }}>
+        {employees.map(emp => (
+          <div key={emp.id} style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", padding: "1.5rem", display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+            <div style={{ width: 44, height: 44, background: emp.status === "active" ? "rgba(249,115,22,0.2)" : "rgba(255,255,255,0.05)", border: `1px solid ${emp.status === "active" ? "rgba(249,115,22,0.3)" : "rgba(255,255,255,0.1)"}`, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.1rem", color: emp.status === "active" ? "#F97316" : "#6B7280", flexShrink: 0 }}>
+              {emp.name.charAt(0)}
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>{emp.name}</div>
+                  <div style={{ color: "#6B7280", fontSize: "0.78rem" }}>@{emp.username}</div>
+                </div>
+                <span style={STATUS_STYLE(emp.status)}>{emp.status}</span>
+              </div>
+              <div style={{ marginTop: "0.75rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                <span style={{ background: "rgba(249,115,22,0.12)", color: "#F97316", fontSize: "0.72rem", padding: "0.2rem 0.6rem", fontWeight: 600 }}>{emp.section}</span>
+                <span style={{ color: "#4B5563", fontSize: "0.75rem", padding: "0.2rem 0" }}>Since {emp.since}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AnnouncementsSection() {
+  const [form, setForm] = useState({ title: "", message: "", audience: "owners" });
+  const [sent, setSent] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [success, setSuccess] = useState(false);
+
+  const AUDIENCES = [
+    { value: "owners", label: "All Owners", desc: "Sent to all registered truck owners" },
+    { value: "employees", label: "Employees / Sub-Admins", desc: "Sent to internal team only" },
+    { value: "public", label: "Public (Browse Page)", desc: "Shown as a banner on the Browse Trucks page" },
+  ];
+
+  const handleSend = () => {
+    const e = {};
+    if (!form.title.trim()) e.title = "Required";
+    if (!form.message.trim()) e.message = "Required";
+    if (Object.keys(e).length) { setErrors(e); return; }
+    setSent(prev => [{ id: Date.now(), ...form, date: "May 22, 2026" }, ...prev]);
+    setForm({ title: "", message: "", audience: "owners" });
+    setErrors({});
+    setSuccess(true);
+    setTimeout(() => setSuccess(false), 3000);
+  };
+
+  return (
+    <div>
+      <div style={{ marginBottom: "1.75rem" }}>
+        <span style={TAG}>Broadcast</span>
+        <h2 style={H2}>ANNOUNCEMENTS</h2>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", alignItems: "start" }}>
+        {/* Compose */}
+        <div style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", padding: "2rem" }}>
+          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "1rem", letterSpacing: "0.07em", color: "#F97316", marginBottom: "1.5rem" }}>COMPOSE ANNOUNCEMENT</div>
+
+          <div style={{ marginBottom: "1.25rem" }}>
+            <label style={LABEL}>Send To</label>
+            {AUDIENCES.map(a => (
+              <label key={a.value} style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", padding: "0.75rem", cursor: "pointer", background: form.audience === a.value ? "rgba(249,115,22,0.08)" : "transparent", border: `1px solid ${form.audience === a.value ? "rgba(249,115,22,0.25)" : "rgba(255,255,255,0.05)"}`, marginBottom: "0.5rem", transition: "all 0.2s" }}>
+                <input type="radio" name="audience" value={a.value} checked={form.audience === a.value} onChange={e => setForm(f => ({ ...f, audience: e.target.value }))} style={{ marginTop: "0.2rem", accentColor: "#F97316" }} />
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: "0.85rem" }}>{a.label}</div>
+                  <div style={{ color: "#6B7280", fontSize: "0.75rem" }}>{a.desc}</div>
+                </div>
+              </label>
+            ))}
+          </div>
+
+          <div style={{ marginBottom: "1rem" }}>
+            <label style={LABEL}>Title</label>
+            <input style={{ ...INPUT, ...(errors.title ? { borderColor: "#ef4444" } : {}) }} placeholder="Announcement title" value={form.title} onChange={e => { setForm(f => ({ ...f, title: e.target.value })); setErrors(er => ({ ...er, title: "" })); }} />
+            {errors.title && <p style={{ color: "#ef4444", fontSize: "0.73rem", marginTop: "0.2rem" }}>{errors.title}</p>}
+          </div>
+
+          <div style={{ marginBottom: "1.25rem" }}>
+            <label style={LABEL}>Message</label>
+            <textarea style={{ ...INPUT, minHeight: 120, resize: "vertical", ...(errors.message ? { borderColor: "#ef4444" } : {}) }} placeholder="Write your announcement…" value={form.message} onChange={e => { setForm(f => ({ ...f, message: e.target.value })); setErrors(er => ({ ...er, message: "" })); }} />
+            {errors.message && <p style={{ color: "#ef4444", fontSize: "0.73rem", marginTop: "0.2rem" }}>{errors.message}</p>}
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <button className="btn-primary" onClick={handleSend} style={{ flex: 1 }}>Send Announcement</button>
+            {success && <span style={{ color: "#22c55e", fontSize: "0.85rem", fontWeight: 600 }}>✓ Sent</span>}
+          </div>
+        </div>
+
+        {/* Sent history */}
+        <div style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", padding: "2rem" }}>
+          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "1rem", letterSpacing: "0.07em", color: "#F97316", marginBottom: "1.25rem" }}>SENT HISTORY</div>
+          {sent.length === 0 && <p style={{ color: "#4B5563", fontSize: "0.85rem" }}>No announcements sent yet.</p>}
+          {sent.map(a => (
+            <div key={a.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "1rem", marginBottom: "1rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.25rem" }}>
+                <span style={{ fontWeight: 600, fontSize: "0.88rem" }}>{a.title}</span>
+                <span style={{ background: "rgba(249,115,22,0.12)", color: "#F97316", fontSize: "0.7rem", padding: "0.15rem 0.55rem", fontWeight: 600 }}>{AUDIENCES.find(x => x.value === a.audience)?.label}</span>
+              </div>
+              <p style={{ color: "#9CA3AF", fontSize: "0.82rem", lineHeight: 1.5, marginBottom: "0.25rem" }}>{a.message}</p>
+              <span style={{ color: "#4B5563", fontSize: "0.75rem" }}>{a.date}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SubscriptionsSection({ users, setUsers }) {
+  const [prices, setPrices] = useState({ Premium: "29", Enterprise: "Custom" });
+  const [editing, setEditing] = useState(null);
+  const [tempPrice, setTempPrice] = useState("");
+  const [saved, setSaved] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const subs = users.filter(u => u.plan !== "Free Trial");
+  const filtered = subs.filter(u => !search || u.username.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()));
+
+  const savePrice = (plan) => {
+    setPrices(p => ({ ...p, [plan]: tempPrice }));
+    setEditing(null);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  };
+
+  return (
+    <div>
+      <div style={{ marginBottom: "1.75rem" }}>
+        <span style={TAG}>Billing</span>
+        <h2 style={H2}>SUBSCRIPTIONS</h2>
+      </div>
+
+      {/* Pricing management */}
+      <div style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", padding: "1.75rem", marginBottom: "1.5rem" }}>
+        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "1rem", letterSpacing: "0.07em", color: "#F97316", marginBottom: "1.25rem" }}>
+          MANAGE PRICING {saved && <span style={{ color: "#22c55e", fontSize: "0.8rem", fontWeight: 400, marginLeft: "1rem" }}>✓ Prices updated</span>}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
+          {[["Free Trial", "Free", "#6B7280", false], ["Premium", prices.Premium, "#F97316", true], ["Enterprise", prices.Enterprise, "#a855f7", false]].map(([plan, price, color, editable]) => (
+            <div key={plan} style={{ background: "#0A0A0A", border: `1px solid ${color}30`, padding: "1.25rem" }}>
+              <div style={{ color, fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.5rem" }}>{plan}</div>
+              {editing === plan ? (
+                <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                  <span style={{ color, fontSize: "1.2rem" }}>$</span>
+                  <input style={{ ...INPUT, padding: "0.4rem 0.6rem", fontSize: "1rem", width: 80 }} value={tempPrice} onChange={e => setTempPrice(e.target.value)} autoFocus />
+                  <button onClick={() => savePrice(plan)} style={{ background: "#F97316", border: "none", color: "#fff", padding: "0.4rem 0.75rem", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: "0.8rem" }}>Save</button>
+                  <button onClick={() => setEditing(null)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#6B7280", padding: "0.4rem 0.6rem", cursor: "pointer", fontSize: "0.8rem" }}>✕</button>
+                </div>
+              ) : (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "2rem", color }}>{plan === "Free Trial" ? "Free" : plan === "Enterprise" ? "Custom" : `$${price}`}</span>
+                  {editable && <button onClick={() => { setEditing(plan); setTempPrice(price); }} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#9CA3AF", padding: "0.3rem 0.7rem", cursor: "pointer", fontSize: "0.75rem", fontFamily: "'DM Sans', sans-serif" }}>Edit</button>}
+                </div>
+              )}
+              {plan !== "Free Trial" && plan !== "Enterprise" && <div style={{ color: "#4B5563", fontSize: "0.75rem", marginTop: "0.25rem" }}>per month · billed monthly</div>}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Subscriber table */}
+      <div style={{ marginBottom: "1rem" }}>
+        <input style={{ ...INPUT, width: 280 }} placeholder="Search subscribers…" value={search} onChange={e => setSearch(e.target.value)} />
+      </div>
+      <div style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr>{["Username", "Email", "Plan", "Status", "Listings", "Joined"].map(h => <th key={h} style={TH}>{h}</th>)}</tr>
+          </thead>
+          <tbody>
+            {filtered.map((u, i) => (
+              <tr key={u.id} style={{ background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)" }}>
+                <td style={{ ...TD, fontWeight: 600 }}>@{u.username}</td>
+                <td style={{ ...TD, color: "#9CA3AF" }}>{u.email}</td>
+                <td style={TD}><span style={{ color: PLAN_COLOR[u.plan], fontWeight: 700 }}>{u.plan}</span></td>
+                <td style={TD}><span style={STATUS_STYLE(u.status)}>{u.status}</span></td>
+                <td style={{ ...TD, textAlign: "center" }}>{u.listings}</td>
+                <td style={{ ...TD, color: "#6B7280" }}>{u.joined}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {filtered.length === 0 && <div style={{ padding: "2.5rem", textAlign: "center", color: "#4B5563" }}>No subscribers found.</div>}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Component ────────────────────────────────────────────────────────────
+export default function AdminPanel() {
+  const navigate = useNavigate();
+  const [active, setActive] = useState("dashboard");
+  const [users, setUsers] = useState(MOCK_USERS);
+  const [complaints, setComplaints] = useState(MOCK_COMPLAINTS);
+  const [employees, setEmployees] = useState(MOCK_EMPLOYEES);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const openComplaints = complaints.filter(c => c.status === "open").length;
+
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0A0A0A; color: #fff; font-family: 'DM Sans', sans-serif; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #0A0A0A; }
+        ::-webkit-scrollbar-thumb { background: #F97316; border-radius: 3px; }
+        select option { background: #1F2937; }
+
+        .btn-primary { background: #F97316; color: #fff; border: none; padding: 0.75rem 1.75rem; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 0.9rem; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px)); }
+        .btn-primary:hover:not(:disabled) { background: #EA6C00; transform: translateY(-1px); }
+        .btn-outline { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,0.25); padding: 0.75rem 1.75rem; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 0.9rem; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px)); }
+        .btn-outline:hover { border-color: #F97316; color: #F97316; }
+
+        .admin-nav { display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 1.25rem; cursor: pointer; transition: all 0.2s; color: #6B7280; font-size: 0.86rem; font-weight: 500; border-left: 2px solid transparent; }
+        .admin-nav:hover { color: #D1D5DB; background: rgba(255,255,255,0.025); }
+        .admin-nav.active { color: #F97316; background: rgba(249,115,22,0.08); border-left-color: #F97316; }
+
+        @media (max-width: 960px) {
+          .admin-sidebar { transform: translateX(-100%); transition: transform 0.3s; position: fixed !important; z-index: 150; height: 100vh; }
+          .admin-sidebar.open { transform: translateX(0); }
+          .mob-btn { display: flex !important; }
+        }
+      `}</style>
+
+      <div style={{ display: "flex", minHeight: "100vh", background: "#0A0A0A" }}>
+
+        {/* SIDEBAR */}
+        <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`} style={{ width: 240, background: "#0a0a0a", borderRight: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", flexShrink: 0 }}>
+          {/* Logo */}
+          <div style={{ padding: "1.5rem 1.25rem", borderBottom: "1px solid rgba(255,255,255,0.06)", cursor: "pointer" }} onClick={() => navigate("/")}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+              <div style={{ width: 30, height: 30, background: "#ef4444", clipPath: "polygon(0 0, 85% 0, 100% 15%, 100% 100%, 15% 100%, 0 85%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.85rem" }}>⚙</div>
+              <div>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.1rem", letterSpacing: "0.05em" }}>STRONG HAUL</div>
+                <div style={{ color: "#ef4444", fontSize: "0.65rem", letterSpacing: "0.12em", textTransform: "uppercase" }}>Admin Portal</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Admin badge */}
+          <div style={{ padding: "1.25rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+              <div style={{ width: 38, height: 38, background: "#ef4444", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.1rem", flexShrink: 0 }}>{SUPER_ADMIN.avatar}</div>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: "0.85rem" }}>{SUPER_ADMIN.name}</div>
+                <div style={{ color: "#ef4444", fontSize: "0.7rem", letterSpacing: "0.06em", textTransform: "uppercase" }}>{SUPER_ADMIN.role}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Nav */}
+          <nav style={{ flex: 1, padding: "0.75rem 0", overflowY: "auto" }}>
+            {NAV_ITEMS.map(item => (
+              <div key={item.id} className={`admin-nav ${active === item.id ? "active" : ""}`} onClick={() => { setActive(item.id); setSidebarOpen(false); }}>
+                <span style={{ fontSize: "0.95rem", width: 20, textAlign: "center", flexShrink: 0 }}>{item.icon}</span>
+                <span>{item.label}</span>
+                {item.id === "complaints" && openComplaints > 0 && (
+                  <span style={{ marginLeft: "auto", background: "#ef4444", color: "#fff", fontSize: "0.63rem", fontWeight: 700, padding: "0.15rem 0.5rem", borderRadius: 10 }}>{openComplaints}</span>
+                )}
+              </div>
+            ))}
+          </nav>
+
+          <div style={{ padding: "1rem", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <div className="admin-nav" onClick={() => navigate("/")} style={{ color: "#6B7280", borderLeft: "none" }}>
+              <span>→</span><span>Back to Site</span>
+            </div>
+          </div>
+        </aside>
+
+        {/* MAIN */}
+        <main style={{ flex: 1, display: "flex", flexDirection: "column", overflowX: "hidden" }}>
+          {/* Topbar */}
+          <header style={{ background: "#0f0f0f", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "1rem 2rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              <button className="mob-btn" onClick={() => setSidebarOpen(o => !o)} style={{ display: "none", background: "none", border: "none", color: "#fff", fontSize: "1.3rem", cursor: "pointer", padding: 0 }}>☰</button>
+              <div>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.3rem", lineHeight: 1 }}>{NAV_ITEMS.find(n => n.id === active)?.label.toUpperCase()}</div>
+                <div style={{ color: "#4B5563", fontSize: "0.72rem", marginTop: "0.1rem" }}>Strong Haul · Admin Portal</div>
+              </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              {openComplaints > 0 && (
+                <div style={{ position: "relative", cursor: "pointer" }} onClick={() => setActive("complaints")}>
+                  <span style={{ fontSize: "1.2rem" }}>⚑</span>
+                  <span style={{ position: "absolute", top: -4, right: -4, background: "#ef4444", color: "#fff", fontSize: "0.6rem", fontWeight: 700, width: 16, height: 16, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>{openComplaints}</span>
+                </div>
+              )}
+              <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.08)" }} />
+              <div style={{ width: 32, height: 32, background: "#ef4444", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}>{SUPER_ADMIN.avatar}</div>
+            </div>
+          </header>
+
+          {/* Content */}
+          <div style={{ flex: 1, padding: "2.5rem 2rem", maxWidth: 1200, width: "100%" }}>
+            {active === "dashboard" && <DashboardSection users={users} complaints={complaints} />}
+            {active === "users" && <UsersSection users={users} setUsers={setUsers} />}
+            {active === "support" && <AdminSupportSection employees={employees} setEmployees={setEmployees} />}
+            {active === "complaints" && <ComplaintsSection complaints={complaints} setComplaints={setComplaints} />}
+            {active === "employees" && <EmployeesSection employees={employees} />}
+            {active === "announcements" && <AnnouncementsSection />}
+            {active === "subscriptions" && <SubscriptionsSection users={users} setUsers={setUsers} />}
+          </div>
+        </main>
+      </div>
+    </>
+  );
+}
