@@ -314,9 +314,21 @@ function AdminSupportSection({ employees, setEmployees }) {
           <div style={MODAL_BOX} onClick={e => e.stopPropagation()}>
             <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.6rem", marginBottom: "1.75rem" }}>ADD SUB-ADMIN</div>
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              <F label="Full Name" field="name" placeholder="e.g. Ama Boateng" />
-              <F label="Username" field="username" placeholder="e.g. ama.admin" />
-              <F label="Email" field="email" placeholder="e.g. ama@stronghaul.com" />
+              <div>
+                <label style={LABEL}>Full Name</label>
+                <input style={{ ...INPUT, ...(errors.name ? { borderColor: "#ef4444" } : {}) }} placeholder="e.g. Ama Boateng" value={form.name} onChange={e => { setForm(f => ({ ...f, name: e.target.value })); setErrors(er => ({ ...er, name: "" })); }} />
+                {errors.name && <p style={{ color: "#ef4444", fontSize: "0.73rem", marginTop: "0.2rem" }}>{errors.name}</p>}
+              </div>
+              <div>
+                <label style={LABEL}>Username</label>
+                <input style={{ ...INPUT, ...(errors.username ? { borderColor: "#ef4444" } : {}) }} placeholder="e.g. ama.admin" value={form.username} onChange={e => { setForm(f => ({ ...f, username: e.target.value })); setErrors(er => ({ ...er, username: "" })); }} />
+                {errors.username && <p style={{ color: "#ef4444", fontSize: "0.73rem", marginTop: "0.2rem" }}>{errors.username}</p>}
+              </div>
+              <div>
+                <label style={LABEL}>Email</label>
+                <input style={{ ...INPUT, ...(errors.email ? { borderColor: "#ef4444" } : {}) }} placeholder="e.g. ama@stronghaul.com" value={form.email} onChange={e => { setForm(f => ({ ...f, email: e.target.value })); setErrors(er => ({ ...er, email: "" })); }} />
+                {errors.email && <p style={{ color: "#ef4444", fontSize: "0.73rem", marginTop: "0.2rem" }}>{errors.email}</p>}
+              </div>
               <div>
                 <label style={LABEL}>Assigned Section</label>
                 <select style={INPUT} value={form.section} onChange={e => setForm(f => ({ ...f, section: e.target.value }))}>
