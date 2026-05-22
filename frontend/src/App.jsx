@@ -197,7 +197,12 @@ export default function App() {
 
         {/* Desktop Nav */}
         <div className="desktop-nav" style={{ display: "flex", gap: "2rem", alignItems: "center" }}>
-          {NAV_LINKS.map(link => <a key={link} className="nav-link">{link}</a>)}
+          {NAV_LINKS.map(link => (
+  <a key={link} className="nav-link" onClick={() => {
+    if (link === "Browse Trucks") navigate("/browse");
+    if (link === "Pricing") navigate("/subscription");
+  }}>{link}</a>
+))}
         </div>
 
         
