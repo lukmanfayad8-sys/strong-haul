@@ -9,7 +9,7 @@ import Auth from "./pages/Auth.jsx";
 import OwnerDashboard from "./pages/OwnerDashboard.jsx";
 import Subscription from "./pages/Subscription.jsx";
 import AdminPanel from "./pages/AdminPanel.jsx";
-import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import ProtectedRoute from "./pages/ProtectedRoute.jsx";
 import "./index.css";
 
 createRoot(document.getElementById("root")).render(
