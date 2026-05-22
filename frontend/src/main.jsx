@@ -7,6 +7,7 @@ import BrowseTrucks from "./pages/BrowseTrucks.jsx";
 import Auth from "./pages/Auth.jsx";
 import OwnerDashboard from "./pages/OwnerDashboard.jsx";
 import Subscription from "./pages/Subscription.jsx";
+import AdminPanel from "./pages/AdminPanel.jsx";
 import "./index.css";
 
 createRoot(document.getElementById("root")).render(
@@ -19,6 +20,7 @@ createRoot(document.getElementById("root")).render(
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<OwnerDashboard />} />
           <Route path="/subscription" element={<Subscription />} />
+          <Route path="/admin" element={<AdminPanel />} />
         </Routes>
       </BrowserRouter>
     </GoogleOAuthProvider>
