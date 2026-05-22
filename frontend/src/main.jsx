@@ -14,8 +14,7 @@ import "./index.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <GoogleOAuthProvider clientId="467820710124-532ag0m3lde4iue0st5jda4sq6d6jq9v.apps.googleusercontent.com
-">
+    <GoogleOAuthProvider clientId="467820710124-532ag0m3lde4iue0st5jda4sq6d6jq9v.apps.googleusercontent.com">
       <BrowserRouter>
         <AuthProvider>
           <Routes>
