@@ -441,15 +441,35 @@ export default function App() {
           </div>
           <div>
             <div style={{ color: "#F97316", fontSize: "0.75rem", letterSpacing: "0.12em", fontWeight: 700, marginBottom: "1rem", textTransform: "uppercase" }}>Platform</div>
-            {["Browse Trucks", "List Your Vehicle", "Pricing", "How It Works"].map(l => <div key={l} style={{ color: "#6B7280", fontSize: "0.88rem", marginBottom: "0.6rem", cursor: "pointer" }}>{l}</div>)}
+           {["Browse Trucks", "List Your Vehicle", "Pricing", "How It Works"].map(l => (
+  <div key={l} onClick={() => {
+    if (l === "Pricing") navigate("/subscription");
+    if (l === "Browse Trucks") navigate("/browse");
+    if (l === "List Your Vehicle") navigate("/auth");
+  }} style={{ color: "#6B7280", fontSize: "0.88rem", marginBottom: "0.6rem", cursor: "pointer" }}>{l}</div>
+))}
           </div>
           <div>
             <div style={{ color: "#F97316", fontSize: "0.75rem", letterSpacing: "0.12em", fontWeight: 700, marginBottom: "1rem", textTransform: "uppercase" }}>Company</div>
-            {["About", "Contact", "Careers", "Admin Login"].map(l => <div key={l} style={{ color: "#6B7280", fontSize: "0.88rem", marginBottom: "0.6rem", cursor: "pointer" }}>{l}</div>)}
+            {["About", "Contact", "Careers", "Admin Login"].map(l => (
+              <div key={l} onClick={() => {
+                if (l === "About") navigate("/about");
+                if (l === "Contact") navigate("/contact");
+                if (l === "Careers") navigate("/careers");
+                if (l === "Admin Login") navigate("/admin");
+              }} style={{ color: "#6B7280", fontSize: "0.88rem", marginBottom: "0.6rem", cursor: "pointer" }}>{l}</div>
+            ))}
           </div>
           <div>
             <div style={{ color: "#F97316", fontSize: "0.75rem", letterSpacing: "0.12em", fontWeight: 700, marginBottom: "1rem", textTransform: "uppercase" }}>Follow Us</div>
-            {["LinkedIn", "Twitter / X", "Instagram", "Facebook"].map(l => <div key={l} style={{ color: "#6B7280", fontSize: "0.88rem", marginBottom: "0.6rem", cursor: "pointer" }}>{l}</div>)}
+            {["LinkedIn", "Twitter / X", "Instagram", "Facebook"].map(l => (
+              <div key={l} onClick={() => {
+                if (l === "LinkedIn") navigate("https://linkedin.com/company/strong-haul");
+                if (l === "Twitter / X") navigate("https://twitter.com/strong_haul");
+                if (l === "Instagram") navigate("https://instagram.com/strong_haul");
+                if (l === "Facebook") navigate("https://facebook.com/strong-haul");
+              }} style={{ color: "#6B7280", fontSize: "0.88rem", marginBottom: "0.6rem", cursor: "pointer" }}>{l}</div>
+            ))}
           </div>
         </div>
         <div style={{ maxWidth: 1200, margin: "0 auto", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "1.5rem", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
