@@ -43,6 +43,7 @@ export default function OwnerDashboard() {
   const [supportSent, setSupportSent] = useState(false);
   const [newVehicle, setNewVehicle] = useState({ name: "", type: "Tipper Truck", capacity: "", location: "", phone: "", reg: "", image_url: "" });
   const [vehicleErrors, setVehicleErrors] = useState({});
+  const [errors, setErrors] = useState({});
 
   const unread = notifications.filter(n => !n.read).length;
   const totalViews = vehicles.reduce((a, v) => a + v.views, 0);
@@ -121,9 +122,12 @@ export default function OwnerDashboard() {
       setVehicles(vs => [...vs, created]);
       setNewVehicle({ name: "", type: "Tipper Truck", capacity: "", location: "", phone: "", reg: "", image_url: "" });
       setVehicleErrors({});
+      setErrors({});
       setShowAddVehicle(false);
     } catch (err) {
-      console.error("Failed to create vehicle:", err);
+      console.error("Failed to save vehicle:", err);
+      const message = err.detail || "Failed to save vehicle. Please try again.";
+      setErrors({ general: message });
     }
   };
 
@@ -596,6 +600,11 @@ export default function OwnerDashboard() {
                 />
               </div>
 
+              {errors.general && (
+                <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444", padding: "0.75rem 1rem", fontSize: "0.85rem", marginBottom: "0.75rem" }}>
+                  {errors.general}
+                </div>
+              )}
               <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
                 <button className="btn-primary" style={{ flex: 1 }} onClick={addVehicle}>Add Vehicle</button>
                 <button className="btn-outline" style={{ flex: 1 }} onClick={() => setShowAddVehicle(false)}>Cancel</button>
