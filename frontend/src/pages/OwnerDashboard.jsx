@@ -422,25 +422,31 @@ export default function OwnerDashboard() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                     <div>
                       <div style={{ color: "#F97316", fontSize: "0.72rem", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "0.4rem" }}>Current Plan</div>
-                      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "2.5rem", lineHeight: 1 }}>Premium</div>
-                      <div style={{ color: "#9CA3AF", fontSize: "0.85rem", marginTop: "0.4rem" }}>Renews in 7 days · Unlimited listings · High priority</div>
+                      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "2.5rem", lineHeight: 1 }}>{user?.plan ?? "Free Trial"}</div>
+                      <div style={{ color: "#9CA3AF", fontSize: "0.85rem", marginTop: "0.4rem" }}>
+                        {user?.plan === "Premium" && "Unlimited listings · High search priority · Analytics"}
+                        {user?.plan === "Enterprise" && "Dedicated company page · Fleet analytics · Account manager"}
+                        {(!user?.plan || user?.plan === "Free Trial") && "Up to 3 listings · Basic profile · Low search priority"}
+                      </div>
                     </div>
                     <div style={{ textAlign: "right" }}>
-                      <button
-                        className="btn-danger"
-                        style={{ display: "block", marginBottom: "0.5rem" }}
-                        onClick={async () => {
-                          try {
-                            await apiCancelSubscription();
-                            login({ ...user, plan: "Free Trial" }, localStorage.getItem("sh_token"));
-                            setActive("subscription");
-                            alert("Your plan has been cancelled. You are now on the Free Trial.");
-                          } catch (err) {
-                            console.error("Cancel failed:", err);
-                            alert(err.detail || "Failed to cancel subscription. Please try again.");
-                          }
-                        }}
-                      >Cancel Plan</button>
+                      {user?.plan !== "Free Trial" && (
+                        <button
+                          className="btn-danger"
+                          style={{ display: "block", marginBottom: "0.5rem" }}
+                          onClick={async () => {
+                            try {
+                              await apiCancelSubscription();
+                              login({ ...user, plan: "Free Trial" }, localStorage.getItem("sh_token"));
+                              setActive("subscription");
+                              alert("Your plan has been cancelled. You are now on the Free Trial.");
+                            } catch (err) {
+                              console.error("Cancel failed:", err);
+                              alert(err.detail || "Failed to cancel subscription. Please try again.");
+                            }
+                          }}
+                        >Cancel Plan</button>
+                      )}
                     </div>
                   </div>
                 </div>
