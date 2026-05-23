@@ -72,6 +72,7 @@ export const apiCreateVehicle = async (vehicle) => {
 };
 
 export const apiUpdateVehicle = async (id, updates) => {
+  console.log("Sending update:", id, JSON.stringify(updates));
   const res = await fetch(`${BASE_URL}/vehicles/${id}`, {
     method: "PATCH",
     headers: authHeaders(),
