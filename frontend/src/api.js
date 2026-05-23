@@ -141,7 +141,7 @@ export const apiGetMySubscription = async () => {
 };
 // ── Notifications ─────────────────────────────────────────────────────────────
 export const apiGetNotifications = async () => {
-  const res = await fetch(`${BASE_URL}/notifications`, {
+  const res = await fetch(`${BASE_URL}/notifications/`, {
     headers: authHeaders(),
   });
   if (!res.ok) throw await res.json();
