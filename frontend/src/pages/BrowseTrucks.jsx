@@ -58,11 +58,11 @@ export default function BrowseTrucks() {
 
   const filtered = useMemo(() => {
     let result = listings.filter(l => {
-      const matchSearch = l.name.toLowerCase().includes(search.toLowerCase()) || l.type.toLowerCase().includes(search.toLowerCase()) || l.location.toLowerCase().includes(search.toLowerCase());
+      const matchSearch = l.name?.toLowerCase().includes(search.toLowerCase()) || l.type?.toLowerCase().includes(search.toLowerCase()) || l.location?.toLowerCase().includes(search.toLowerCase());
       const matchType = type === "All Types" || l.type === type;
       const matchCap = capacityInRange(l.capacity, capacity);
       const matchLoc = location === "All Locations" || l.country === location;
-      const matchAvail = availability === "all" || (availability === "available" ? l.available : !l.available);
+      const matchAvail = availability === "all" || (availability === "available" ? l.online : !l.online);
       return matchSearch && matchType && matchCap && matchLoc && matchAvail;
     });
 
@@ -206,7 +206,10 @@ export default function BrowseTrucks() {
                 <div key={l.id} className="truck-card" onClick={() => setSelected(l)}>
                   {/* Image */}
                   <div style={{ background: "#0A0A0A", height: 140, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "4rem", position: "relative" }}>
-                    {l.image}
+                    {l.image_url
+                      ? <img src={l.image_url} alt={l.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "4rem" }}>🚛</div>
+                    }
                     <div style={{ position: "absolute", top: "0.75rem", right: "0.75rem", background: tc.bg, color: tc.color, fontSize: "0.7rem", fontWeight: 700, padding: "0.2rem 0.6rem", letterSpacing: "0.05em" }}>{l.tier}</div>
                   </div>
 
@@ -214,8 +217,8 @@ export default function BrowseTrucks() {
                   <div style={{ padding: "1.25rem" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
                       <span style={{ color: "#9CA3AF", fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>{l.type}</span>
-                      <span style={{ background: l.available ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)", color: l.available ? "#22c55e" : "#ef4444", fontSize: "0.7rem", fontWeight: 700, padding: "0.2rem 0.55rem", letterSpacing: "0.04em" }}>
-                        {l.available ? "● AVAILABLE" : "● UNAVAILABLE"}
+                      <span style={{ background: l.online ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)", color: l.online ? "#22c55e" : "#ef4444", fontSize: "0.7rem", fontWeight: 700, padding: "0.2rem 0.55rem", letterSpacing: "0.04em" }}>
+                        {l.online ? "● AVAILABLE" : "● UNAVAILABLE"}
                       </span>
                     </div>
 
@@ -226,7 +229,7 @@ export default function BrowseTrucks() {
                       <span style={{ color: "#9CA3AF", fontSize: "0.82rem" }}>📍 {l.location}</span>
                     </div>
 
-                    <p style={{ color: "#6B7280", fontSize: "0.82rem", lineHeight: 1.6, marginBottom: "1.25rem" }}>{l.description.slice(0, 80)}...</p>
+                    <p style={{ color: "#6B7280", fontSize: "0.82rem", lineHeight: 1.6, marginBottom: "1.25rem" }}>{l.description?.slice(0, 80) ?? ""}...</p>
 
                     <button className="btn-primary">View Details</button>
                   </div>
@@ -243,7 +246,10 @@ export default function BrowseTrucks() {
           <div className="modal" onClick={e => e.stopPropagation()}>
             {/* Modal Image */}
             <div style={{ background: "#0A0A0A", height: 180, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "5rem", position: "relative" }}>
-              {selected.image}
+              {selected.image_url
+                ? <img src={selected.image_url} alt={selected.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                : <div style={{ width: "100%", height: "100%", background: "#0A0A0A", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "5rem" }}>🚛</div>
+              }
               <button onClick={() => setSelected(null)} style={{ position: "absolute", top: "1rem", right: "1rem", background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", width: 32, height: 32, cursor: "pointer", fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
             </div>
 
@@ -254,8 +260,8 @@ export default function BrowseTrucks() {
                   <span style={{ color: "#9CA3AF", fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>{selected.type}</span>
                   <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "2rem", lineHeight: 1.1 }}>{selected.name}</h2>
                 </div>
-                <span style={{ background: selected.available ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)", color: selected.available ? "#22c55e" : "#ef4444", fontSize: "0.75rem", fontWeight: 700, padding: "0.35rem 0.75rem" }}>
-                  {selected.available ? "AVAILABLE" : "UNAVAILABLE"}
+                <span style={{ background: selected.online ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)", color: selected.online ? "#22c55e" : "#ef4444", fontSize: "0.75rem", fontWeight: 700, padding: "0.35rem 0.75rem" }}>
+                  {selected.online ? "AVAILABLE" : "UNAVAILABLE"}
                 </span>
               </div>
 
