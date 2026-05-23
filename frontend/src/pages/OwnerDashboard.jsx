@@ -192,6 +192,15 @@ export default function OwnerDashboard() {
           .main-content { margin-left: 0 !important; }
           .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .vehicles-grid { grid-template-columns: 1fr !important; }
+          .modal { max-width: 100% !important; margin: 0.5rem !important; padding: 1.5rem !important; }
+          table, .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        }
+        @media (max-width: 480px) {
+          .stats-grid { grid-template-columns: 1fr !important; }
+          .vehicles-grid { grid-template-columns: 1fr !important; }
+          .btn-primary, .btn-outline { width: 100% !important; }
+          .dash-input, .dash-select, .search-input, .filter-select { width: 100% !important; }
+          .modal { padding: 1.5rem !important; }
         }
       `}</style>
 

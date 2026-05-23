@@ -167,7 +167,7 @@ export default function App() {
         @media (max-width: 768px) {
           .desktop-nav { display: none !important; }
           .mobile-menu-btn { display: block !important; }
-          .hero-headline { font-size: 3.5rem !important; }
+          .hero-headline { font-size: clamp(2.5rem, 8vw, 5.5rem) !important; }
           .stats-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 2rem !important; }
           .how-grid { grid-template-columns: 1fr !important; }
           .listings-grid { grid-template-columns: 1fr !important; }
@@ -176,6 +176,12 @@ export default function App() {
           .testimonials-grid { grid-template-columns: 1fr !important; }
           .footer-grid { grid-template-columns: 1fr !important; gap: 2rem !important; }
           .hero-buttons { flex-direction: column !important; align-items: flex-start !important; }
+          .btn-primary, .btn-outline { width: 100% !important; }
+        }
+        @media (max-width: 480px) {
+          .hero-headline { font-size: clamp(2.5rem, 8vw, 4.5rem) !important; }
+          .stats-grid { grid-template-columns: 1fr !important; }
+          .btn-primary, .btn-outline { width: 100% !important; }
         }
       `}</style>
 

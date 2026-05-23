@@ -124,6 +124,16 @@ export default function Auth() {
 
         @keyframes spin { to { transform: rotate(360deg); } }
         .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; margin-right: 0.5rem; vertical-align: middle; }
+
+        @media (max-width: 768px) {
+          .auth-layout { flex-direction: column !important; }
+          .auth-left, .auth-right { width: 100% !important; max-width: none !important; border-left: none !important; padding: 2rem !important; }
+          .auth-input, .input-wrap, .btn-primary, .btn-outline { width: 100% !important; }
+        }
+        @media (max-width: 480px) {
+          .auth-input, .input-wrap, .btn-primary, .btn-outline { width: 100% !important; }
+          .toggle-pass { right: 0.75rem !important; }
+        }
       `}</style>
 
       {/* Success Overlay */}
@@ -137,10 +147,10 @@ export default function Auth() {
         </div>
       )}
 
-      <div style={{ minHeight: "100vh", display: "flex" }}>
+      <div className="auth-layout" style={{ minHeight: "100vh", display: "flex" }}>
 
         {/* LEFT PANEL — Branding */}
-        <div className="grid-bg" style={{ flex: 1, background: "#0f0f0f", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "3rem", position: "relative", overflow: "hidden" }}>
+        <div className="grid-bg auth-left" style={{ flex: 1, background: "#0f0f0f", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "3rem", position: "relative", overflow: "hidden" }}>
           {/* Glow */}
           <div style={{ position: "absolute", bottom: "-10%", left: "-10%", width: 500, height: 500, background: "radial-gradient(circle, rgba(249,115,22,0.12) 0%, transparent 65%)", pointerEvents: "none" }} />
           <div style={{ position: "absolute", top: "30%", right: "-5%", width: 300, height: 300, background: "radial-gradient(circle, rgba(249,115,22,0.06) 0%, transparent 65%)", pointerEvents: "none" }} />

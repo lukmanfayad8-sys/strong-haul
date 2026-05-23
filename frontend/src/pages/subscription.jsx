@@ -203,8 +203,16 @@ export default function Subscription() {
           .plans-grid { grid-template-columns: 1fr !important; max-width: 480px; margin: 0 auto; }
           .compare-grid { display: none !important; }
         }
+        @media (max-width: 768px) {
+          .hero-headline { font-size: clamp(2.5rem, 8vw, 4.5rem) !important; }
+          .modal { max-width: 100% !important; margin: 0.5rem !important; padding: 1.5rem !important; }
+          .plans-grid { grid-template-columns: 1fr !important; }
+          .faq-grid { grid-template-columns: 1fr !important; }
+          .payment-input, .btn-primary, .btn-outline, .btn-purple { width: 100% !important; }
+        }
         @media (max-width: 600px) {
           .faq-grid { grid-template-columns: 1fr !important; }
+          .btn-primary, .btn-outline, .btn-purple { width: 100% !important; }
         }
       `}</style>
 
@@ -225,7 +233,7 @@ export default function Subscription() {
         <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 700, height: 400, background: "radial-gradient(ellipse, rgba(249,115,22,0.08) 0%, transparent 65%)", pointerEvents: "none" }} />
         <div style={{ position: "relative" }}>
           <span className="section-tag">Pricing</span>
-          <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "clamp(3rem, 7vw, 6rem)", lineHeight: 0.95, marginBottom: "1rem" }}>
+          <h1 className="hero-headline" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "clamp(3rem, 7vw, 6rem)", lineHeight: 0.95, marginBottom: "1rem" }}>
             SIMPLE,<br /><span style={{ color: "#F97316" }}>TRANSPARENT</span><br />PRICING
           </h1>
           <p style={{ color: "#9CA3AF", fontSize: "1.05rem", maxWidth: 480, margin: "0 auto 2.5rem", lineHeight: 1.7 }}>

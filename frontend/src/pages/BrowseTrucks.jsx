@@ -117,9 +117,12 @@ export default function BrowseTrucks() {
         @media (max-width: 768px) {
           .filters-grid { grid-template-columns: 1fr 1fr !important; }
           .listings-grid { grid-template-columns: 1fr !important; }
+          .modal { max-width: 100% !important; margin: 0.5rem !important; padding: 1.5rem !important; }
         }
         @media (max-width: 480px) {
           .filters-grid { grid-template-columns: 1fr !important; }
+          .btn-primary, .btn-outline { width: 100% !important; }
+          .search-input, .filter-select { width: 100% !important; }
         }
       `}</style>
 
