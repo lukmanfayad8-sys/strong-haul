@@ -1,7 +1,7 @@
 import { useAuth } from "../context/AuthContext.jsx";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiGetMyVehicles, apiCreateVehicle, apiUpdateVehicle, apiDeleteVehicle, apiUploadVehicleImage, apiCancelSubscription, apiInitiatePayment, apiSubmitComplaint } from "../api";
+import { apiGetMyVehicles, apiCreateVehicle, apiUpdateVehicle, apiDeleteVehicle, apiUploadVehicleImage, apiCancelSubscription, apiInitiatePayment, apiSubmitComplaint, apiGetNotifications, apiMarkNotificationRead, apiMarkAllNotificationsRead } from "../api";
 
 const OWNER = {
   name: "Kwame Asante",
@@ -11,14 +11,6 @@ const OWNER = {
   memberSince: "Jan 2025",
   avatar: "K",
 };
-
-const NOTIFICATIONS = [
-  { id: 1, type: "contact", message: "A hirer from Lagos contacted you about Mack Granite Tipper", time: "2 hours ago", read: false },
-  { id: 2, type: "announcement", message: "Strong Haul: New search filter features are now live!", time: "1 day ago", read: false },
-  { id: 3, type: "subscription", message: "Your Premium plan renews in 7 days.", time: "2 days ago", read: true },
-  { id: 4, type: "contact", message: "A hirer from Accra contacted you about Liebherr LTM Crane", time: "3 days ago", read: true },
-  { id: 5, type: "announcement", message: "Strong Haul: Verified badge program is now available.", time: "1 week ago", read: true },
-];
 
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: "📊" },
@@ -34,7 +26,7 @@ export default function OwnerDashboard() {
   const { user, logout, login } = useAuth();
   const [active, setActive] = useState("dashboard");
   const [vehicles, setVehicles] = useState([]);
-  const [notifications, setNotifications] = useState(NOTIFICATIONS);
+  const [notifications, setNotifications] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAddVehicle, setShowAddVehicle] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -54,6 +46,12 @@ export default function OwnerDashboard() {
     apiGetMyVehicles()
       .then(setVehicles)
       .catch(err => console.error("Failed to load vehicles:", err));
+  }, []);
+
+  useEffect(() => {
+    apiGetNotifications()
+      .then(setNotifications)
+      .catch(err => console.error("Failed to load notifications:", err));
   }, []);
 
   const toggleAvail = async (id) => {
@@ -92,7 +90,13 @@ export default function OwnerDashboard() {
     }
   };
 
-  const markAllRead = () => {
+  const markOne = async (id) => {
+    await apiMarkNotificationRead(id);
+    setNotifications(ns => ns.map(n => n.id === id ? { ...n, read: true } : n));
+  };
+
+  const markAll = async () => {
+    await apiMarkAllNotificationsRead();
     setNotifications(ns => ns.map(n => ({ ...n, read: true })));
   };
 
@@ -514,7 +518,7 @@ export default function OwnerDashboard() {
                     <span className="section-tag">Inbox</span>
                     <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "2rem" }}>Notifications</h2>
                   </div>
-                  {unread > 0 && <button className="btn-outline" style={{ padding: "0.5rem 1rem", fontSize: "0.78rem" }} onClick={markAllRead}>Mark All Read</button>}
+                  {unread > 0 && <button className="btn-outline" style={{ padding: "0.5rem 1rem", fontSize: "0.78rem" }} onClick={markAll}>Mark All Read</button>}
                 </div>
 
                 <div style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
