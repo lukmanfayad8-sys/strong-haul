@@ -12,13 +12,14 @@ class VehicleCreate(BaseModel):
     image_url: Optional[str] = None
 
 class VehicleUpdate(BaseModel):
-    name: Optional[str]
-    type: Optional[str]
-    capacity: Optional[str]
-    location: Optional[str]
-    reg: Optional[str]
+    name: Optional[str] = None
+    type: Optional[str] = None
+    capacity: Optional[str] = None
+    location: Optional[str] = None
+    reg: Optional[str] = None
+    online: Optional[bool] = None
+    image_url: Optional[str] = None
     phone: Optional[str] = None
-    online: Optional[bool]
 
 class VehicleOut(BaseModel):
     id: int
