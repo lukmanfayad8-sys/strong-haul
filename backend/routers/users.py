@@ -1,10 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Header  # type: ignore[import]
 from sqlalchemy.orm import Session  # type: ignore[import]
 import httpx  # type: ignore[import]
+from passlib.context import CryptContext  # type: ignore[import]
 from database import get_db
 from models import User
-from schemas import TokenOut, UserOut
+from schemas import TokenOut, UserOut, UserLogin, UserRegister
 from auth import create_access_token, decode_token
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 router = APIRouter(prefix="/users", tags=["users"])
 

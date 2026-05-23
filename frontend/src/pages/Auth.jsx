@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext";
+import { apiRegister, apiLogin } from "../api";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ export default function Auth() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [authError, setAuthError] = useState("");
   const [showPass, setShowPass] = useState(false);
 
   const update = (field, value) => {
@@ -30,14 +32,40 @@ export default function Auth() {
     return e;
   };
 
-  const handleSubmit = async () => {
+  const handleEmailLogin = async () => {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1500));
-    setLoading(false);
-    setSuccess(true);
-    setTimeout(() => navigate("/"), 2000);
+    setAuthError("");
+    try {
+      const data = await apiLogin(form.email, form.password);
+      login(data.user, data.access_token);
+      navigate("/dashboard");
+    } catch (err) {
+      setAuthError(err?.detail || "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEmailSignup = async () => {
+    const e = validate();
+    if (Object.keys(e).length) { setErrors(e); return; }
+    setLoading(true);
+    setAuthError("");
+    try {
+      const data = await apiRegister(form.name, form.email, form.password);
+      login(data.user, data.access_token);
+      navigate("/dashboard");
+    } catch (err) {
+      setAuthError(err?.detail || "Signup failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = () => {
+    return mode === "login" ? handleEmailLogin() : handleEmailSignup();
   };
 
   const handleGoogle = useGoogleLogin({
@@ -51,7 +79,7 @@ export default function Auth() {
         email: profile.email,
         avatar: profile.picture,
         sub: profile.sub,
-      });
+      }, tokenResponse.access_token);
       navigate("/dashboard");
     },
     onError: () => console.error("Google login failed"),
@@ -181,6 +209,11 @@ export default function Auth() {
             </div>
 
             <div className="divider"><span>OR CONTINUE WITH EMAIL</span></div>
+            {authError && (
+              <p style={{ color: "#ef4444", textAlign: "center", marginTop: "0.5rem", marginBottom: "1rem" }}>
+                {authError}
+              </p>
+            )}
 
             {/* Form Fields */}
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>

@@ -10,6 +10,7 @@ class User(Base):
     name = Column(String)
     email = Column(String, unique=True, index=True)
     avatar = Column(String, nullable=True)
+    password_hash = Column(String, nullable=True)
     plan = Column(String, default="Free Trial")
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
