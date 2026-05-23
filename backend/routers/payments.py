@@ -86,6 +86,20 @@ def verify_payment(
         raise HTTPException(status_code=400, detail="Verification failed")
 
     data = res.json()["data"]
+    customer_code = data.get("customer", {}).get("customer_code")
+    subscription_code = None
+    email_token = None
+
+    if customer_code:
+        sub_res = requests.get(
+            f"https://api.paystack.co/subscription?customer={customer_code}",
+            headers=HEADERS,
+        )
+        if sub_res.status_code == 200:
+            sub_data = sub_res.json().get("data", [])
+            if sub_data:
+                subscription_code = sub_data[0].get("subscription_code")
+                email_token = sub_data[0].get("email_token")
 
     if data["status"] != "success":
         raise HTTPException(status_code=400, detail="Payment not successful")
@@ -101,8 +115,9 @@ def verify_payment(
         user_id=current_user.id,
         plan=plan,
         status="active",
-        paystack_customer_code=data.get("customer", {}).get("customer_code"),
-        paystack_subscription_code=data.get("subscription_code"),
+        paystack_customer_code=customer_code,
+        paystack_subscription_code=subscription_code,
+        paystack_email_token=email_token,
         amount=data["amount"],
     )
     db.add(sub)
