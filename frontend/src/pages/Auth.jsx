@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext";
-import { apiRegister, apiLogin } from "../api";
+import { apiRegister, apiLogin, apiGoogleAuth } from "../api";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -13,6 +13,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [authError, setAuthError] = useState("");
+  const setError = setAuthError;
   const [showPass, setShowPass] = useState(false);
 
   const update = (field, value) => {
@@ -70,17 +71,14 @@ export default function Auth() {
 
   const handleGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
-      const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-        headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-      });
-      const profile = await res.json();
-      login({
-        name: profile.name,
-        email: profile.email,
-        avatar: profile.picture,
-        sub: profile.sub,
-      }, tokenResponse.access_token);
-      navigate("/dashboard");
+      try {
+        // Save user to backend and get JWT
+        const data = await apiGoogleAuth(tokenResponse.access_token);
+        login(data.user, data.access_token);
+        navigate("/dashboard");
+      } catch (err) {
+        setError("Google sign-in failed. Please try again.");
+      }
     },
     onError: () => console.error("Google login failed"),
   });
