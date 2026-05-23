@@ -4,7 +4,7 @@ from fastapi.security import HTTPBearer
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
 import models
-from routers import users, vehicles, admin, payments, uploads, complaints, notifications
+from routers import users, vehicles, admin, payments, uploads, complaints
 
 Base.metadata.create_all(bind=engine)
 
