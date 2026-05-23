@@ -530,7 +530,7 @@ export default function OwnerDashboard() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "1.1rem" }}>
-              {["Vehicle Name", "name", "e.g. Mack Granite Tipper"], ["Capacity", "capacity", "e.g. 30 tons"], ["Location", "location", "e.g. Accra, Ghana"], ["WhatsApp / Phone Number", "phone", "e.g. +233 24 123 4567"], ["Registration Number", "reg", "e.g. GR-1234-22"]].map(([label, field, placeholder]) => (
+              {[["Vehicle Name", "name", "e.g. Mack Granite Tipper"], ["Capacity", "capacity", "e.g. 30 tons"], ["Location", "location", "e.g. Accra, Ghana"], ["WhatsApp / Phone Number", "phone", "e.g. +233 24 123 4567"], ["Registration Number", "reg", "e.g. GR-1234-22"]].map(([label, field, placeholder]) => (
                 <div key={field}>
                   <label style={{ color: "#9CA3AF", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "0.4rem" }}>{label}</label>
                   <input className={`dash-input ${vehicleErrors[field] ? "error" : ""}`} placeholder={placeholder} value={newVehicle[field]} onChange={e => { setNewVehicle(v => ({ ...v, [field]: e.target.value })); setVehicleErrors(er => ({ ...er, [field]: "" })); }} />
