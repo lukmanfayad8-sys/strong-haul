@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, Header
-from sqlalchemy.orm import Session
-import httpx
-from database import get_db
-from models import User
-from schemas import TokenOut, UserOut
-from auth import create_access_token, decode_token
+from fastapi import APIRouter, Depends, HTTPException, Header  # type: ignore[import]
+from sqlalchemy.orm import Session  # type: ignore[import]
+import httpx  # type: ignore[import]
+from ..database import get_db
+from ..models import User
+from ..schemas import TokenOut, UserOut
+from ..auth import create_access_token, decode_token
 
 router = APIRouter(prefix="/users", tags=["users"])
 
