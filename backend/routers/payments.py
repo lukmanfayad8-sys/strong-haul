@@ -137,19 +137,21 @@ def cancel_subscription(
         Subscription.status == "active"
     ).first()
 
-    if not sub or not sub.paystack_subscription_code:
+    if not sub:
         raise HTTPException(status_code=404, detail="No active subscription found")
 
-    # Disable on Paystack
-    res = requests.post(
-        "https://api.paystack.co/subscription/disable",
-        headers=HEADERS,
-        json={
-            "code": sub.paystack_subscription_code,
-            "token": sub.paystack_email_token,
-        }
-    )
+    # Try to disable on Paystack if subscription code exists
+    if sub.paystack_subscription_code and sub.paystack_email_token:
+        requests.post(
+            "https://api.paystack.co/subscription/disable",
+            headers=HEADERS,
+            json={
+                "code": sub.paystack_subscription_code,
+                "token": sub.paystack_email_token,
+            }
+        )
 
+    # Always update locally regardless
     sub.status = "cancelled"
     current_user.plan = "Free Trial"
     db.commit()
