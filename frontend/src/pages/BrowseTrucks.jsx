@@ -56,9 +56,6 @@ export default function BrowseTrucks() {
       });
   }, []);
 
-  if (loading) return <div style={{ color: "#fff", padding: "4rem", textAlign: "center" }}>Loading listings...</div>;
-  if (!loading && listings.length === 0) return <div style={{ textAlign: "center", padding: "4rem", color: "#6B7280" }}>No vehicles listed yet.</div>;
-
   const filtered = useMemo(() => {
     let result = listings.filter(l => {
       const matchSearch = l.name.toLowerCase().includes(search.toLowerCase()) || l.type.toLowerCase().includes(search.toLowerCase()) || l.location.toLowerCase().includes(search.toLowerCase());
@@ -80,6 +77,9 @@ export default function BrowseTrucks() {
     if (tier === "Premium") return { bg: "rgba(249,115,22,0.15)", color: "#F97316" };
     return { bg: "rgba(156,163,175,0.15)", color: "#9CA3AF" };
   };
+
+  if (loading) return <div style={{ color: "#fff", padding: "4rem", textAlign: "center" }}>Loading listings...</div>;
+  if (!loading && listings.length === 0) return <div style={{ textAlign: "center", padding: "4rem", color: "#6B7280" }}>No vehicles listed yet.</div>;
 
   return (
     <>
