@@ -50,7 +50,10 @@ export default function OwnerDashboard() {
 
   useEffect(() => {
     apiGetNotifications()
-      .then(setNotifications)
+      .then(data => {
+        console.log("Notifications loaded:", data);
+        setNotifications(data);
+      })
       .catch(err => console.error("Failed to load notifications:", err));
   }, []);
 
