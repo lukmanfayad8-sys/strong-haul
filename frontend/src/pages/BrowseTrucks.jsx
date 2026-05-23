@@ -57,12 +57,18 @@ export default function BrowseTrucks() {
   }, []);
 
   const filtered = useMemo(() => {
-    let result = listings.filter(l => {
-      const matchSearch = l.name?.toLowerCase().includes(search.toLowerCase()) || l.type?.toLowerCase().includes(search.toLowerCase()) || l.location?.toLowerCase().includes(search.toLowerCase());
-      const matchType = type === "All Types" || l.type === type;
-      const matchCap = capacityInRange(l.capacity, capacity);
-      const matchLoc = location === "All Locations" || l.country === location;
-      const matchAvail = availability === "all" || (availability === "available" ? l.online : !l.online);
+    const q = search.toLowerCase();
+    let result = listings.filter(v => {
+      const matchSearch = !q ||
+        v.name?.toLowerCase().includes(q) ||
+        v.type?.toLowerCase().includes(q) ||
+        v.location?.toLowerCase().includes(q);
+      const matchType = type === "All Types" || v.type === type;
+      const matchCap = capacityInRange(v.capacity, capacity);
+      const matchLoc = location === "All Locations" || v.country === location;
+      const matchAvail = availability === "all" ||
+        (availability === "available" && v.online) ||
+        (availability === "unavailable" && !v.online);
       return matchSearch && matchType && matchCap && matchLoc && matchAvail;
     });
 
@@ -70,7 +76,7 @@ export default function BrowseTrucks() {
     if (sort === "Capacity: High to Low") result = [...result].sort((a, b) => b.capacity - a.capacity);
     if (sort === "Capacity: Low to High") result = [...result].sort((a, b) => a.capacity - b.capacity);
     return result;
-  }, [search, type, capacity, location, availability, sort]);
+  }, [listings, search, type, capacity, location, availability, sort]);
 
   const tierColor = (tier) => {
     if (tier === "Enterprise") return { bg: "rgba(168,85,247,0.15)", color: "#a855f7" };
