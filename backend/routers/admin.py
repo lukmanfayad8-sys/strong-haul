@@ -114,11 +114,15 @@ def send_announcement(payload: AnnouncementPayload, db: Session = Depends(get_db
     else:
         users = db.query(User).filter(User.is_active == True).all()
 
+    title = payload.title.strip()
+    message_text = payload.message.strip()
+    announcement_text = f"{title} — {message_text}"
+
     for user in users:
         notif = Notification(
             user_id=user.id,
             type="announcement",
-            message=f"{payload.title}: {payload.message}",
+            message=announcement_text,
         )
         db.add(notif)
     db.commit()
