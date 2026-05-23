@@ -327,7 +327,11 @@ function ComplaintsSection({ complaints, setComplaints }) {
   const [filter, setFilter] = useState("All");
 
   const filtered = filter === "All" ? complaints : complaints.filter(c => c.status === filter);
-  const resolve = (id) => { setComplaints(cs => cs.map(c => c.id === id ? { ...c, status: "resolved" } : c)); setSelected(null); };
+  const resolve = async (id) => {
+    await apiAdminResolveComplaint(id);
+    setComplaints(cs => cs.map(c => c.id === id ? { ...c, status: "resolved" } : c));
+    setSelected(null);
+  };
 
   const CATEGORY_COLOR = { "Listing Problem": "#F97316", "Billing Issue": "#ef4444", "Technical Support": "#3b82f6", "Report Abuse": "#a855f7", "General Enquiry": "#22c55e" };
 
@@ -430,16 +434,18 @@ function AnnouncementsSection() {
     { value: "public", label: "Public (Browse Page)", desc: "Shown as a banner on the Browse Trucks page" },
   ];
 
-  const handleSend = () => {
-    const e = {};
-    if (!form.title.trim()) e.title = "Required";
-    if (!form.message.trim()) e.message = "Required";
-    if (Object.keys(e).length) { setErrors(e); return; }
-    setSent(prev => [{ id: Date.now(), ...form, date: "May 22, 2026" }, ...prev]);
-    setForm({ title: "", message: "", audience: "owners" });
-    setErrors({});
-    setSuccess(true);
-    setTimeout(() => setSuccess(false), 3000);
+  const handleSend = async () => {
+    if (!form.title.trim() || !form.message.trim()) return;
+
+    try {
+      await apiAdminSendAnnouncement(form.title, form.message, form.audience);
+      setSent(prev => [{ id: Date.now(), ...form, date: new Date().toLocaleDateString() }, ...prev]);
+      setForm({ title: "", message: "", audience: "owners" });
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      console.error("Failed to send announcement:", err);
+    }
   };
 
   return (
