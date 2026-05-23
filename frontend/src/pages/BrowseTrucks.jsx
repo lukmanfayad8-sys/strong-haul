@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiGetAllVehicles } from "../api";
 
 const TRUCK_TYPES = ["All Types", "Tipper Truck", "Flatbed Truck", "Tanker Truck", "Excavator", "Crane", "Lowboy", "Refrigerated Truck"];
 const CAPACITIES = ["All Capacities", "Under 10 tons", "10–20 tons", "20–30 tons", "30–40 tons", "40+ tons"];
@@ -40,9 +41,26 @@ export default function BrowseTrucks() {
   const [availability, setAvailability] = useState("all");
   const [sort, setSort] = useState("Most Relevant");
   const [selected, setSelected] = useState(null);
+  const [listings, setListings] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiGetAllVehicles()
+      .then(data => {
+        setListings(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to load listings:", err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <div style={{ color: "#fff", padding: "4rem", textAlign: "center" }}>Loading listings...</div>;
+  if (!loading && listings.length === 0) return <div style={{ textAlign: "center", padding: "4rem", color: "#6B7280" }}>No vehicles listed yet.</div>;
 
   const filtered = useMemo(() => {
-    let result = LISTINGS.filter(l => {
+    let result = listings.filter(l => {
       const matchSearch = l.name.toLowerCase().includes(search.toLowerCase()) || l.type.toLowerCase().includes(search.toLowerCase()) || l.location.toLowerCase().includes(search.toLowerCase());
       const matchType = type === "All Types" || l.type === type;
       const matchCap = capacityInRange(l.capacity, capacity);
