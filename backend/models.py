@@ -28,6 +28,7 @@ class Vehicle(Base):
     capacity = Column(String)
     location = Column(String)
     reg = Column(String)
+    image_url = Column(String, nullable=True)
     online = Column(Boolean, default=False)
     views = Column(Integer, default=0)
     contacts = Column(Integer, default=0)

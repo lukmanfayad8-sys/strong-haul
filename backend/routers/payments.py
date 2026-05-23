@@ -17,11 +17,12 @@ HEADERS = {
     "Authorization": f"Bearer {PAYSTACK_SECRET}",
     "Content-Type": "application/json",
 }
+print("Paystack key:", PAYSTACK_SECRET[:15] if PAYSTACK_SECRET else "NOT FOUND")
 
 # Plan codes — create these in Paystack dashboard first
 PLAN_CODES = {
-    "Premium": "PLN_your_premium_plan_code",
-    "Enterprise": "PLN_your_enterprise_plan_code",
+    "Premium": "PLN_0erpwyjo5r87zrv",
+    "Enterprise": "PLN_m9avegudwcyakfm",
 }
 
 PLAN_AMOUNTS = {
@@ -37,6 +38,8 @@ def initiate_subscription(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    print("Received plan:", payload.plan)
+    print("Plan codes:", PLAN_CODES)
     if payload.plan not in PLAN_CODES:
         raise HTTPException(status_code=400, detail="Invalid plan")
 

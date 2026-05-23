@@ -8,6 +8,7 @@ class VehicleCreate(BaseModel):
     capacity: str
     location: str
     reg: str
+    image_url: Optional[str] = None
 
 class VehicleUpdate(BaseModel):
     name: Optional[str]
@@ -24,6 +25,7 @@ class VehicleOut(BaseModel):
     capacity: str
     location: str
     reg: str
+    image_url: Optional[str] = None
     online: bool
     views: int
     contacts: int
