@@ -257,76 +257,78 @@ export default function Subscription() {
       <section style={{ padding: "2rem 2rem 5rem", maxWidth: 1200, margin: "0 auto" }}>
         {error && <div style={{ color: "#ef4444", textAlign: "center", marginBottom: "1rem" }}>{error}</div>}
         <div className="plans-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.5rem", alignItems: "start" }}>
-          {PLANS.map((plan) => (
-            <div key={plan.id} className={`plan-card fade-up ${plan.highlight ? "highlighted" : ""} ${plan.id === "enterprise" ? "enterprise" : ""}`}
-              style={{ borderTopColor: plan.color, borderTopWidth: 3 }}>
+          {PLANS.map((plan) => {
+            const isCurrentPlan = plan.name === (user?.plan ?? "Free Trial");
+            return (
+              <div key={plan.id} className={`plan-card fade-up ${plan.highlight ? "highlighted" : ""} ${plan.id === "enterprise" ? "enterprise" : ""}`}
+                style={{ background: isCurrentPlan ? "rgba(249,115,22,0.08)" : "#111827", border: `1px solid ${isCurrentPlan ? "#F97316" : "rgba(255,255,255,0.07)"}`, padding: "2.5rem 2rem", borderTopColor: plan.color, borderTopWidth: 3 }}>
 
-              {/* Badge */}
-              {plan.badge && (
-                <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: plan.highlight ? "#F97316" : "#a855f7", color: "#fff", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.1em", padding: "0.3rem 1rem", whiteSpace: "nowrap" }}>{plan.badge}</div>
-              )}
-
-              {/* Plan Header */}
-              <div style={{ marginBottom: "1.5rem" }}>
-                <div style={{ color: plan.color, fontSize: "0.75rem", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem" }}>{plan.name}</div>
-                <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem", marginBottom: "0.5rem" }}>
-                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "3.5rem", color: plan.color, lineHeight: 1 }}>
-                    {plan.price === 0 ? "Free" : plan.price === null ? (plan.id === "enterprise" ? "Custom" : "TBD") : `$${plan.price}`}
-                  </span>
-                  {plan.price !== 0 && <span style={{ color: "#6B7280", fontSize: "0.82rem", paddingBottom: "0.5rem" }}>/ {plan.period}</span>}
-                </div>
-                {plan.price === 0 && <div style={{ color: "#6B7280", fontSize: "0.82rem" }}>No credit card required</div>}
-                <p style={{ color: "#9CA3AF", fontSize: "0.85rem", lineHeight: 1.6, marginTop: "0.75rem" }}>{plan.description}</p>
-              </div>
-
-              {/* CTA */}
-              <div style={{ marginBottom: "2rem" }}>
-                {plan.id === "free" && <button className="btn-outline" onClick={() => handleSelect(plan)}>{plan.cta}</button>}
-                {plan.id === "premium" && (
-                  <button className="btn-primary" onClick={async () => {
-                    if (plan.name === currentPlan) return;
-                    try {
-                      setLoading(true);
-                      const data = await apiInitiatePayment(plan.name);
-                      window.location.href = data.authorization_url;
-                    } catch (err) {
-                      setError(err.detail || "Payment failed. Please try again.");
-                      setLoading(false);
-                    }
-                  }}>{plan.cta}</button>
+                {/* Badge */}
+                {plan.badge && (
+                  <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: plan.highlight ? "#F97316" : "#a855f7", color: "#fff", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.1em", padding: "0.3rem 1rem", whiteSpace: "nowrap" }}>{plan.badge}</div>
                 )}
-                {plan.id === "enterprise" && (
-                  <button className="btn-purple" onClick={async () => {
-                    if (plan.name === "Enterprise") {
-                      window.location.href = "mailto:support@stronghaul.com";
-                      return;
-                    }
-                    if (plan.name === currentPlan) return;
-                    try {
-                      setLoading(true);
-                      const data = await apiInitiatePayment(plan.name);
-                      window.location.href = data.authorization_url;
-                    } catch (err) {
-                      setError(err.detail || "Payment failed. Please try again.");
-                      setLoading(false);
-                    }
-                  }}>{plan.cta}</button>
-                )}
-              </div>
 
-              {/* Features */}
-              <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "1.5rem" }}>
-                <div style={{ color: "#6B7280", fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.75rem" }}>What's included</div>
-                {plan.features.map((f, i) => (
-                  <div key={i} className="feature-row">
-                    <span style={{ color: f.included ? plan.color : "#374151", fontSize: "0.9rem", flexShrink: 0 }}>{f.included ? "✓" : "✕"}</span>
-                    <span style={{ color: f.included ? "#D1D5DB" : "#4B5563" }}>{f.text}</span>
+                {/* Plan Header */}
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <div style={{ color: plan.color, fontSize: "0.75rem", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem" }}>{plan.name}</div>
+                  <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "3.5rem", color: plan.color, lineHeight: 1 }}>
+                      {plan.price === 0 ? "Free" : plan.price === null ? (plan.id === "enterprise" ? "Custom" : "TBD") : `$${plan.price}`}
+                    </span>
+                    {plan.price !== 0 && <span style={{ color: "#6B7280", fontSize: "0.82rem", paddingBottom: "0.5rem" }}>/ {plan.period}</span>}
                   </div>
-                ))}
+                  {plan.price === 0 && <div style={{ color: "#6B7280", fontSize: "0.82rem" }}>No credit card required</div>}
+                  <p style={{ color: "#9CA3AF", fontSize: "0.85rem", lineHeight: 1.6, marginTop: "0.75rem" }}>{plan.description}</p>
+                </div>
+
+                {/* CTA */}
+                <div style={{ marginBottom: "2rem" }}>
+                  {plan.id === "free" && <button className="btn-outline" onClick={() => handleSelect(plan)}>{plan.cta}</button>}
+                  {plan.id === "premium" && (
+                    <button className={isCurrentPlan ? "btn-outline" : "btn-primary"} disabled={isCurrentPlan} onClick={async () => {
+                      if (isCurrentPlan) return;
+                      try {
+                        setLoading(true);
+                        const data = await apiInitiatePayment(plan.name);
+                        window.location.href = data.authorization_url;
+                      } catch (err) {
+                        setError(err.detail || "Payment failed. Please try again.");
+                        setLoading(false);
+                      }
+                    }}>{isCurrentPlan ? "Current Plan" : plan.cta}</button>
+                  )}
+                  {plan.id === "enterprise" && (
+                    <button className={isCurrentPlan ? "btn-outline" : "btn-purple"} disabled={isCurrentPlan} onClick={async () => {
+                      if (plan.name === "Enterprise") {
+                        window.location.href = "mailto:support@stronghaul.com";
+                        return;
+                      }
+                      if (isCurrentPlan) return;
+                      try {
+                        setLoading(true);
+                        const data = await apiInitiatePayment(plan.name);
+                        window.location.href = data.authorization_url;
+                      } catch (err) {
+                        setError(err.detail || "Payment failed. Please try again.");
+                        setLoading(false);
+                      }
+                    }}>{isCurrentPlan ? "Current Plan" : plan.cta}</button>
+                  )}
+                </div>
+
+                {/* Features */}
+                <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "1.5rem" }}>
+                  <div style={{ color: "#6B7280", fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.75rem" }}>What's included</div>
+                  {plan.features.map((f, i) => (
+                    <div key={i} className="feature-row">
+                      <span style={{ color: f.included ? plan.color : "#374151", fontSize: "0.9rem", flexShrink: 0 }}>{f.included ? "✓" : "✕"}</span>
+                      <span style={{ color: f.included ? "#D1D5DB" : "#4B5563" }}>{f.text}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            );
+          })}        </div>
 
         {/* Trust badges */}
         <div style={{ display: "flex", justifyContent: "center", gap: "2.5rem", marginTop: "3rem", flexWrap: "wrap" }}>

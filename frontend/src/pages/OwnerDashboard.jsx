@@ -229,7 +229,7 @@ export default function OwnerDashboard() {
               }
               <div>
                 <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>{user?.name ?? "Owner"}</div>
-                <div style={{ background: "rgba(249,115,22,0.15)", color: "#F97316", fontSize: "0.68rem", fontWeight: 700, padding: "0.15rem 0.5rem", display: "inline-block", marginTop: "0.2rem" }}>{OWNER.plan}</div>
+                <div style={{ background: "rgba(249,115,22,0.15)", color: "#F97316", fontSize: "0.68rem", fontWeight: 700, padding: "0.15rem 0.5rem", display: "inline-block", marginTop: "0.2rem" }}>{user?.plan ?? "Free Trial"}</div>
               </div>
             </div>
           </div>
@@ -341,7 +341,7 @@ export default function OwnerDashboard() {
                 {/* Plan Banner */}
                 <div style={{ background: "rgba(249,115,22,0.08)", border: "1px solid rgba(249,115,22,0.25)", padding: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                   <div>
-                    <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.3rem" }}>You're on the Premium Plan</div>
+                    <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.3rem" }}>You're on the {user?.plan ?? "Free Trial"} Plan</div>
                     <div style={{ color: "#9CA3AF", fontSize: "0.85rem", marginTop: "0.25rem" }}>Unlimited listings · High search priority · Analytics</div>
                   </div>
                   <button className="btn-primary" onClick={() => setActive("subscription")}>Manage Plan</button>
