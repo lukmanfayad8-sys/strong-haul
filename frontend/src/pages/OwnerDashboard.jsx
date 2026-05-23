@@ -63,6 +63,7 @@ export default function OwnerDashboard() {
       setVehicles(vs => vs.map(v => v.id === id ? updated : v));
     } catch (err) {
       console.error("Toggle failed:", err);
+      console.error("Toggle error detail:", JSON.stringify(err));
     }
   };
 
