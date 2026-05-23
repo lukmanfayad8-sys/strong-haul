@@ -57,7 +57,7 @@ export default function Auth() {
     try {
       const data = await apiRegister(form.name, form.email, form.password);
       login(data.user, data.access_token);
-      navigate("/dashboard");
+      navigate("/subscription");
     } catch (err) {
       setAuthError(err?.detail || "Signup failed");
     } finally {
@@ -75,7 +75,7 @@ export default function Auth() {
         // Save user to backend and get JWT
         const data = await apiGoogleAuth(tokenResponse.access_token);
         login(data.user, data.access_token);
-        navigate("/dashboard");
+        navigate("/subscription");
       } catch (err) {
         setError("Google sign-in failed. Please try again.");
       }
