@@ -1,7 +1,7 @@
 import { useAuth } from "../context/AuthContext.jsx";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiGetMyVehicles, apiCreateVehicle, apiUpdateVehicle, apiDeleteVehicle, apiUploadVehicleImage, apiCancelSubscription } from "../api";
+import { apiGetMyVehicles, apiCreateVehicle, apiUpdateVehicle, apiDeleteVehicle, apiUploadVehicleImage, apiCancelSubscription, apiInitiatePayment } from "../api";
 
 const OWNER = {
   name: "Kwame Asante",
@@ -464,7 +464,25 @@ export default function OwnerDashboard() {
                           <span style={{ color: "#D1D5DB", fontSize: "0.85rem" }}>{f}</span>
                         </div>
                       ))}
-                      <button className={plan.current ? "btn-outline" : "btn-primary"} style={{ width: "100%", marginTop: "1.25rem" }} disabled={plan.current}>
+                      <button
+                        className={plan.current ? "btn-outline" : "btn-primary"}
+                        style={{ width: "100%", marginTop: "1.25rem" }}
+                        disabled={plan.current}
+                        onClick={plan.current ? undefined : async () => {
+                          try {
+                            if (plan.name === "Free Trial") {
+                              await apiCancelSubscription();
+                              login({ ...user, plan: "Free Trial" }, localStorage.getItem("sh_token"));
+                              alert("You have been downgraded to Free Trial.");
+                            } else {
+                              const data = await apiInitiatePayment(plan.name);
+                              window.location.href = data.authorization_url;
+                            }
+                          } catch (err) {
+                            alert(err.detail || (plan.name === "Free Trial" ? "Failed to cancel subscription." : "Payment failed. Please try again."));
+                          }
+                        }}
+                      >
                         {plan.current ? "Current Plan" : `Switch to ${plan.name}`}
                       </button>
                     </div>
