@@ -12,6 +12,8 @@ class User(Base):
     avatar = Column(String, nullable=True)
     password_hash = Column(String, nullable=True)
     plan = Column(String, default="Free Trial")
+    role = Column(String, default="owner")
+    admin_section = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     vehicles = relationship("Vehicle", back_populates="owner")
