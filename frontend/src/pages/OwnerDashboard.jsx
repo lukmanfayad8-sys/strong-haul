@@ -1,7 +1,7 @@
 import { useAuth } from "../context/AuthContext.jsx";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiGetMyVehicles, apiCreateVehicle, apiUpdateVehicle, apiDeleteVehicle, apiUploadVehicleImage } from "../api";
+import { apiGetMyVehicles, apiCreateVehicle, apiUpdateVehicle, apiDeleteVehicle, apiUploadVehicleImage, apiCancelSubscription } from "../api";
 
 const OWNER = {
   name: "Kwame Asante",
@@ -31,7 +31,7 @@ const NAV_ITEMS = [
 
 export default function OwnerDashboard() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, login } = useAuth();
   const [active, setActive] = useState("dashboard");
   const [vehicles, setVehicles] = useState([]);
   const [notifications, setNotifications] = useState(NOTIFICATIONS);
@@ -204,13 +204,16 @@ export default function OwnerDashboard() {
           {/* Owner Info */}
           <div style={{ padding: "1.25rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              {user?.avatar ? (
-                <img src={user.avatar} style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }} />
-              ) : (
-                <div style={{ width: 40, height: 40, background: "#F97316", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.2rem" }}>
-                  {user?.name?.charAt(0) ?? "U"}
-                </div>
-              )}
+              {user?.avatar
+                ? <img
+                    src={user.avatar}
+                    alt="avatar"
+                    style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover" }}
+                  />
+                : <div style={{ width: 38, height: 38, background: "#F97316", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.1rem" }}>
+                    {user?.name?.charAt(0) ?? "U"}
+                  </div>
+              }
               <div>
                 <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>{user?.name ?? "Owner"}</div>
                 <div style={{ background: "rgba(249,115,22,0.15)", color: "#F97316", fontSize: "0.68rem", fontWeight: 700, padding: "0.15rem 0.5rem", display: "inline-block", marginTop: "0.2rem" }}>{OWNER.plan}</div>
@@ -410,7 +413,21 @@ export default function OwnerDashboard() {
                       <div style={{ color: "#9CA3AF", fontSize: "0.85rem", marginTop: "0.4rem" }}>Renews in 7 days · Unlimited listings · High priority</div>
                     </div>
                     <div style={{ textAlign: "right" }}>
-                      <button className="btn-danger" style={{ display: "block", marginBottom: "0.5rem" }}>Cancel Plan</button>
+                      <button
+                        className="btn-danger"
+                        style={{ display: "block", marginBottom: "0.5rem" }}
+                        onClick={async () => {
+                          try {
+                            await apiCancelSubscription();
+                            login({ ...user, plan: "Free Trial" }, localStorage.getItem("sh_token"));
+                            setActive("subscription");
+                            alert("Your plan has been cancelled. You are now on the Free Trial.");
+                          } catch (err) {
+                            console.error("Cancel failed:", err);
+                            alert(err.detail || "Failed to cancel subscription. Please try again.");
+                          }
+                        }}
+                      >Cancel Plan</button>
                     </div>
                   </div>
                 </div>
