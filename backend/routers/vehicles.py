@@ -27,6 +27,7 @@ def create_vehicle(vehicle: VehicleCreate, current_user: User = Depends(get_curr
 
 @router.patch("/{vehicle_id}", response_model=VehicleOut)
 def update_vehicle(vehicle_id: int, updates: VehicleUpdate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    print("Update payload received:", updates.dict(exclude_unset=True))
     vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id, Vehicle.owner_id == current_user.id).first()
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
