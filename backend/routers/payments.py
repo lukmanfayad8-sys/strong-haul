@@ -56,6 +56,8 @@ def initiate_subscription(
         }
     )
 
+    print("Paystack response:", res.status_code, res.json())
+
     if res.status_code != 200:
         raise HTTPException(status_code=400, detail="Failed to initiate payment")
 
