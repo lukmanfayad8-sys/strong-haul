@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiInitiatePayment, apiVerifyPayment, apiGetMySubscription } from "../api";
+import { useAuth } from "../context/AuthContext";
 
 const PLANS = [
   {
@@ -87,6 +89,7 @@ const FAQS = [
 
 export default function Subscription() {
   const navigate = useNavigate();
+  const { user, login } = useAuth();
   const [billing, setBilling] = useState("monthly");
   const [selected, setSelected] = useState(null);
   const [openFaq, setOpenFaq] = useState(null);
@@ -95,6 +98,9 @@ export default function Subscription() {
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [cardForm, setCardForm] = useState({ name: "", number: "", expiry: "", cvv: "" });
   const [processing, setProcessing] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState(user?.plan ?? "Free Trial");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSelect = (plan) => {
     if (plan.id === "enterprise") { return; }
@@ -117,6 +123,21 @@ export default function Subscription() {
   const formatExpiry = (val) => {
     return val.replace(/\D/g, "").replace(/(\d{2})(\d)/, "$1/$2").slice(0, 5);
   };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const reference = params.get("reference");
+    const payment = params.get("payment");
+    if (payment === "success" && reference) {
+      apiVerifyPayment(reference)
+        .then(data => {
+          setCurrentPlan(data.plan);
+          login({ ...user, plan: data.plan }, localStorage.getItem("sh_token"));
+          window.history.replaceState({}, "", "/subscription");
+        })
+        .catch(err => setError("Payment verification failed."));
+    }
+  }, []);
 
   return (
     <>
@@ -226,6 +247,7 @@ export default function Subscription() {
 
       {/* PLANS */}
       <section style={{ padding: "2rem 2rem 5rem", maxWidth: 1200, margin: "0 auto" }}>
+        {error && <div style={{ color: "#ef4444", textAlign: "center", marginBottom: "1rem" }}>{error}</div>}
         <div className="plans-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.5rem", alignItems: "start" }}>
           {PLANS.map((plan) => (
             <div key={plan.id} className={`plan-card fade-up ${plan.highlight ? "highlighted" : ""} ${plan.id === "enterprise" ? "enterprise" : ""}`}
@@ -252,8 +274,36 @@ export default function Subscription() {
               {/* CTA */}
               <div style={{ marginBottom: "2rem" }}>
                 {plan.id === "free" && <button className="btn-outline" onClick={() => handleSelect(plan)}>{plan.cta}</button>}
-                {plan.id === "premium" && <button className="btn-primary" onClick={() => handleSelect(plan)}>{plan.cta}</button>}
-                {plan.id === "enterprise" && <button className="btn-purple" onClick={() => handleSelect(plan)}>{plan.cta}</button>}
+                {plan.id === "premium" && (
+                  <button className="btn-primary" onClick={async () => {
+                    if (plan.name === currentPlan) return;
+                    try {
+                      setLoading(true);
+                      const data = await apiInitiatePayment(plan.name);
+                      window.location.href = data.authorization_url;
+                    } catch (err) {
+                      setError(err.detail || "Payment failed. Please try again.");
+                      setLoading(false);
+                    }
+                  }}>{plan.cta}</button>
+                )}
+                {plan.id === "enterprise" && (
+                  <button className="btn-purple" onClick={async () => {
+                    if (plan.name === "Enterprise") {
+                      window.location.href = "mailto:support@stronghaul.com";
+                      return;
+                    }
+                    if (plan.name === currentPlan) return;
+                    try {
+                      setLoading(true);
+                      const data = await apiInitiatePayment(plan.name);
+                      window.location.href = data.authorization_url;
+                    } catch (err) {
+                      setError(err.detail || "Payment failed. Please try again.");
+                      setLoading(false);
+                    }
+                  }}>{plan.cta}</button>
+                )}
               </div>
 
               {/* Features */}

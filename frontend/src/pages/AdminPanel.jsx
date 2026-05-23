@@ -1,39 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiAdminDashboard, apiAdminGetUsers, apiAdminToggleUser, apiAdminGetComplaints, apiAdminResolveComplaint, apiAdminSendAnnouncement, apiAdminGetSubscriptions } from "../api";
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 const SUPER_ADMIN = { name: "Admin", username: "superadmin", role: "Super Admin", avatar: "A" };
-
-const MOCK_USERS = [
-  { id: 1, username: "kwameasante", email: "kwame@example.com", truckType: "Tipper Truck", phone: "+233 24 123 4567", plan: "Premium", status: "active", joined: "Jan 2025", listings: 3 },
-  { id: 2, username: "chidiokafor", email: "chidi@example.com", truckType: "Excavator", phone: "+234 80 234 5678", plan: "Enterprise", status: "active", joined: "Feb 2025", listings: 12 },
-  { id: 3, username: "gracewanjiku", email: "grace@example.com", truckType: "Flatbed Truck", phone: "+254 71 345 6789", plan: "Free Trial", status: "inactive", joined: "Mar 2025", listings: 1 },
-  { id: 4, username: "amara.diallo", email: "amara@example.com", truckType: "Tanker Truck", phone: "+221 77 456 7890", plan: "Premium", status: "active", joined: "Mar 2025", listings: 5 },
-  { id: 5, username: "tunde.adeyemi", email: "tunde@example.com", truckType: "Crane", phone: "+234 80 567 8901", plan: "Premium", status: "active", joined: "Apr 2025", listings: 4 },
-  { id: 6, username: "fatou.ndiaye", email: "fatou@example.com", truckType: "Lowboy", phone: "+221 70 678 9012", plan: "Free Trial", status: "inactive", joined: "Apr 2025", listings: 2 },
-  { id: 7, username: "emeka.osei", email: "emeka@example.com", truckType: "Tipper Truck", phone: "+233 20 789 0123", plan: "Enterprise", status: "active", joined: "May 2025", listings: 19 },
-];
-
-const MOCK_COMPLAINTS = [
-  { id: 1, from: "kwame@example.com", subject: "Listing not showing in search", category: "Listing Problem", message: "My Mack Granite Tipper does not appear when I search for tipper trucks in Accra.", date: "May 20, 2026", status: "open" },
-  { id: 2, from: "grace@example.com", subject: "Subscription charge error", category: "Billing Issue", message: "I was charged twice for my Premium plan this month. Please refund one charge.", date: "May 19, 2026", status: "open" },
-  { id: 3, from: "amara@example.com", subject: "Cannot update phone number", category: "Technical Support", message: "The profile page throws an error when I try to save a new phone number.", date: "May 17, 2026", status: "resolved" },
-  { id: 4, from: "tunde@example.com", subject: "Fake contact enquiry", category: "Report Abuse", message: "I received an enquiry from someone using a fake email. Please investigate this account.", date: "May 15, 2026", status: "open" },
-  { id: 5, from: "emeka@example.com", subject: "Analytics data missing", category: "Technical Support", message: "My analytics dashboard shows no data for the past 7 days.", date: "May 14, 2026", status: "resolved" },
-];
-
-const MOCK_EMPLOYEES = [
-  { id: 1, name: "Ama Boateng", username: "ama.admin", email: "ama@stronghaul.com", section: "Users", status: "active", since: "Jan 2025" },
-  { id: 2, name: "Seun Oladele", username: "seun.admin", email: "seun@stronghaul.com", section: "Complaints", status: "active", since: "Feb 2025" },
-  { id: 3, name: "Miriam Waweru", username: "miriam.admin", email: "miriam@stronghaul.com", section: "Subscriptions", status: "inactive", since: "Mar 2025" },
-  { id: 4, name: "Kofi Mensah", username: "kofi.admin", email: "kofi@stronghaul.com", section: "Announcements", status: "active", since: "Apr 2025" },
-];
-
-const MONTHLY_DATA = [
-  { month: "Nov", subs: 18 }, { month: "Dec", subs: 24 }, { month: "Jan", subs: 31 },
-  { month: "Feb", subs: 28 }, { month: "Mar", subs: 42 }, { month: "Apr", subs: 38 },
-  { month: "May", subs: 51 },
-];
 
 const SECTIONS = ["Users", "Complaints", "Subscriptions", "Announcements", "Admin-Support"];
 
@@ -62,12 +32,14 @@ const STATUS_STYLE = (s) => ({ background: s === "active" ? "rgba(34,197,94,0.12
 
 // ─── Sections ─────────────────────────────────────────────────────────────────
 
-function DashboardSection({ users, complaints }) {
-  const activeSubs = users.filter(u => u.status === "active").length;
-  const premium = users.filter(u => u.plan === "Premium").length;
-  const enterprise = users.filter(u => u.plan === "Enterprise").length;
-  const openComplaints = complaints.filter(c => c.status === "open").length;
-  const max = Math.max(...MONTHLY_DATA.map(d => d.subs));
+function DashboardSection({ users, complaints, dashboardStats }) {
+  const totalOwners = dashboardStats?.total_owners ?? 0;
+  const activeSubs = dashboardStats?.active_owners ?? 0;
+  const premium = dashboardStats?.premium_subscribers ?? 0;
+  const enterprise = dashboardStats?.enterprise_subscribers ?? 0;
+  const openComplaints = dashboardStats?.open_complaints ?? 0;
+  const monthlyData = dashboardStats?.monthly_data || [];
+  const max = Math.max(...monthlyData.map(d => d.subs), 1);
 
   return (
     <div>
@@ -79,8 +51,8 @@ function DashboardSection({ users, complaints }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1rem", marginBottom: "2rem" }}>
         {[
-          { value: users.length, label: "Total Owners", sub: "Registered accounts", accent: true },
-          { value: activeSubs, label: "Active Owners", sub: `${users.length - activeSubs} inactive` },
+          { value: totalOwners, label: "Total Owners", sub: "Registered accounts", accent: true },
+          { value: activeSubs, label: "Active Owners", sub: `${totalOwners - activeSubs} inactive` },
           { value: premium + enterprise, label: "Paid Subscribers", sub: `${premium} Premium · ${enterprise} Enterprise` },
           { value: openComplaints, label: "Open Complaints", sub: `${complaints.length - openComplaints} resolved` },
         ].map(s => (
@@ -98,7 +70,7 @@ function DashboardSection({ users, complaints }) {
         <div style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", padding: "1.75rem" }}>
           <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "1rem", letterSpacing: "0.06em", color: "#F97316", marginBottom: "1.5rem" }}>MONTHLY SUBSCRIBERS</div>
           <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", height: 120 }}>
-            {MONTHLY_DATA.map(d => (
+            {monthlyData.map(d => (
               <div key={d.month} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
                 <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "0.75rem", color: "#6B7280" }}>{d.subs}</div>
                 <div style={{ width: "100%", background: d.month === "May" ? "#F97316" : "rgba(249,115,22,0.25)", height: `${(d.subs / max) * 90}px`, transition: "height 0.3s" }} />
@@ -162,7 +134,10 @@ function UsersSection({ users, setUsers }) {
     return matchSearch && matchPlan && matchStatus;
   });
 
-  const toggleStatus = (id) => setUsers(us => us.map(u => u.id === id ? { ...u, status: u.status === "active" ? "inactive" : "active" } : u));
+  const toggleStatus = async (id) => {
+    const updated = await apiAdminToggleUser(id);
+    setUsers(us => us.map(u => u.id === id ? { ...u, status: updated.is_active ? "active" : "inactive" } : u));
+  };
 
   return (
     <div>
@@ -613,11 +588,33 @@ function SubscriptionsSection({ users }) {
 export default function AdminPanel() {
   const navigate = useNavigate();
   const [active, setActive] = useState("dashboard");
-  const [users, setUsers] = useState(MOCK_USERS);
-  const [complaints, setComplaints] = useState(MOCK_COMPLAINTS);
-  const [employees, setEmployees] = useState(MOCK_EMPLOYEES);
+  const [users, setUsers] = useState([]);
+  const [complaints, setComplaints] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const openComplaints = complaints.filter(c => c.status === "open").length;
+
+  useEffect(() => {
+    Promise.all([
+      apiAdminDashboard(),
+      apiAdminGetUsers(),
+      apiAdminGetComplaints(),
+    ])
+      .then(([stats, usersData, complaintsData]) => {
+        setDashboardStats(stats);
+        setUsers(usersData);
+        setComplaints(complaintsData);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to load admin data:", err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <div style={{ color: "#fff", padding: "4rem", textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontSize: "2rem" }}>LOADING...</div>;
 
   return (
     <>
@@ -717,7 +714,7 @@ export default function AdminPanel() {
 
           {/* Content */}
           <div style={{ flex: 1, padding: "2.5rem 2rem", maxWidth: 1200, width: "100%" }}>
-            {active === "dashboard" && <DashboardSection users={users} complaints={complaints} />}
+            {active === "dashboard" && <DashboardSection users={users} complaints={complaints} dashboardStats={dashboardStats} />}
             {active === "users" && <UsersSection users={users} setUsers={setUsers} />}
             {active === "support" && <AdminSupportSection employees={employees} setEmployees={setEmployees} />}
             {active === "complaints" && <ComplaintsSection complaints={complaints} setComplaints={setComplaints} />}
