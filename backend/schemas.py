@@ -49,6 +49,20 @@ class UserLogin(BaseModel):
     email: str
     password: str
 
+class SubscriptionInitiate(BaseModel):
+    plan: str
+
+class SubscriptionOut(BaseModel):
+    id: int
+    user_id: int
+    plan: str
+    status: str
+    paystack_customer_code: Optional[str]
+    paystack_subscription_code: Optional[str]
+    amount: int
+    created_at: datetime
+    class Config: from_attributes = True
+
 class NotificationOut(BaseModel):
     id: int
     type: str

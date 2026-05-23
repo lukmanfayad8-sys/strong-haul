@@ -44,6 +44,18 @@ class Notification(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     user = relationship("User", back_populates="notifications")
 
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    plan = Column(String)
+    status = Column(String)
+    paystack_customer_code = Column(String, nullable=True)
+    paystack_subscription_code = Column(String, nullable=True)
+    amount = Column(Integer)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    user = relationship("User")
+
 class Complaint(Base):
     __tablename__ = "complaints"
     id = Column(Integer, primary_key=True, index=True)
