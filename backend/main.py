@@ -4,7 +4,7 @@ from fastapi.security import HTTPBearer
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
 import models
-from routers import users, vehicles, admin, payments, uploads
+from routers import users, vehicles, admin, payments, uploads, complaints
 
 Base.metadata.create_all(bind=engine)
 
@@ -48,6 +48,7 @@ app.include_router(vehicles.router)
 app.include_router(admin.router)
 app.include_router(payments.router)
 app.include_router(uploads.router)
+app.include_router(complaints.router)
 
 @app.get("/")
 def root():

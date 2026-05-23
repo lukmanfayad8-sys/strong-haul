@@ -149,6 +149,22 @@ export const apiAdminDashboard = async () => {
   return res.json();
 };
 
+// ── Complaints ────────────────────────────────────────────────────────────────
+export const apiSubmitComplaint = async (subject, category, message) => {
+  const res = await fetch(`${BASE_URL}/complaints`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ 
+      email: JSON.parse(localStorage.getItem("sh_user"))?.email ?? "",
+      subject, 
+      category, 
+      message 
+    }),
+  });
+  if (!res.ok) throw await res.json();
+  return res.json();
+};
+
 export const apiAdminGetUsers = async () => {
   const res = await fetch(`${BASE_URL}/admin/users`, {
     headers: authHeaders(),

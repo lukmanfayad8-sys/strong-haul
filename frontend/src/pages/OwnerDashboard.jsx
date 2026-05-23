@@ -1,7 +1,7 @@
 import { useAuth } from "../context/AuthContext.jsx";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiGetMyVehicles, apiCreateVehicle, apiUpdateVehicle, apiDeleteVehicle, apiUploadVehicleImage, apiCancelSubscription, apiInitiatePayment } from "../api";
+import { apiGetMyVehicles, apiCreateVehicle, apiUpdateVehicle, apiDeleteVehicle, apiUploadVehicleImage, apiCancelSubscription, apiInitiatePayment, apiSubmitComplaint } from "../api";
 
 const OWNER = {
   name: "Kwame Asante",
@@ -39,7 +39,7 @@ export default function OwnerDashboard() {
   const [showAddVehicle, setShowAddVehicle] = useState(false);
   const [editing, setEditing] = useState(null);
   const [profileForm, setProfileForm] = useState({ username: OWNER.username, email: OWNER.email, password: "" });
-  const [supportForm, setSupportForm] = useState({ subject: "", message: "" });
+  const [supportForm, setSupportForm] = useState({ subject: "", category: "General Enquiry", message: "" });
   const [supportSent, setSupportSent] = useState(false);
   const [newVehicle, setNewVehicle] = useState({ name: "", type: "Tipper Truck", capacity: "", location: "", phone: "", reg: "", image_url: "" });
   const [vehicleErrors, setVehicleErrors] = useState({});
@@ -131,11 +131,17 @@ export default function OwnerDashboard() {
     }
   };
 
-  const sendSupport = () => {
+  const sendSupport = async () => {
     if (!supportForm.subject || !supportForm.message) return;
-    setSupportSent(true);
-    setSupportForm({ subject: "", message: "" });
-    setTimeout(() => setSupportSent(false), 3000);
+    try {
+      await apiSubmitComplaint(supportForm.subject, supportForm.category ?? "General Enquiry", supportForm.message);
+      setSupportSent(true);
+      setSupportForm({ subject: "", category: "General Enquiry", message: "" });
+      setTimeout(() => setSupportSent(false), 3000);
+    } catch (err) {
+      console.error("Failed to submit complaint:", err);
+      alert(err.detail || "Failed to submit. Please try again.");
+    }
   };
 
   return (
