@@ -455,44 +455,47 @@ export default function OwnerDashboard() {
                 <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "1.4rem", marginBottom: "1.25rem" }}>Available Plans</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem" }}>
                   {[
-                    { name: "Free Trial", price: "Free", period: "1 Month", features: ["Up to 3 listings", "Basic profile", "Low priority"], current: false },
-                    { name: "Premium", price: "TBD", period: "per month", features: ["Unlimited listings", "High priority", "Analytics", "API access"], current: true },
-                    { name: "Enterprise", price: "Custom", period: "contact sales", features: ["Company page", "Fleet analytics", "Account manager"], current: false },
-                  ].map((plan, i) => (
-                    <div key={i} style={{ background: plan.current ? "rgba(249,115,22,0.08)" : "#111827", border: `1px solid ${plan.current ? "#F97316" : "rgba(255,255,255,0.08)"}`, padding: "1.75rem" }}>
-                      {plan.current && <div style={{ color: "#F97316", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.1em", marginBottom: "0.5rem" }}>✓ CURRENT PLAN</div>}
-                      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.5rem", marginBottom: "0.25rem" }}>{plan.name}</div>
-                      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "2.5rem", color: plan.current ? "#F97316" : "#fff", lineHeight: 1 }}>{plan.price}</div>
-                      <div style={{ color: "#6B7280", fontSize: "0.8rem", marginBottom: "1.25rem" }}>{plan.period}</div>
-                      {plan.features.map(f => (
-                        <div key={f} style={{ display: "flex", gap: "0.5rem", marginBottom: "0.6rem" }}>
-                          <span style={{ color: "#F97316" }}>✓</span>
-                          <span style={{ color: "#D1D5DB", fontSize: "0.85rem" }}>{f}</span>
-                        </div>
-                      ))}
-                      <button
-                        className={plan.current ? "btn-outline" : "btn-primary"}
-                        style={{ width: "100%", marginTop: "1.25rem" }}
-                        disabled={plan.current}
-                        onClick={plan.current ? undefined : async () => {
-                          try {
-                            if (plan.name === "Free Trial") {
-                              await apiCancelSubscription();
-                              login({ ...user, plan: "Free Trial" }, localStorage.getItem("sh_token"));
-                              alert("You have been downgraded to Free Trial.");
-                            } else {
-                              const data = await apiInitiatePayment(plan.name);
-                              window.location.href = data.authorization_url;
+                    { name: "Free Trial", price: "Free", period: "1 Month", features: ["Up to 3 listings", "Basic profile", "Low priority"] },
+                    { name: "Premium", price: "TBD", period: "per month", features: ["Unlimited listings", "High priority", "Analytics", "API access"] },
+                    { name: "Enterprise", price: "Custom", period: "contact sales", features: ["Company page", "Fleet analytics", "Account manager"] },
+                  ].map((plan, i) => {
+                    const isCurrent = plan.name === (user?.plan ?? "Free Trial");
+                    return (
+                      <div key={i} style={{ background: isCurrent ? "rgba(249,115,22,0.08)" : "#111827", border: `1px solid ${isCurrent ? "#F97316" : "rgba(255,255,255,0.08)"}`, padding: "1.75rem" }}>
+                        {isCurrent && <div style={{ color: "#F97316", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.1em", marginBottom: "0.5rem" }}>✓ CURRENT PLAN</div>}
+                        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.5rem", marginBottom: "0.25rem" }}>{plan.name}</div>
+                        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "2.5rem", color: isCurrent ? "#F97316" : "#fff", lineHeight: 1 }}>{plan.price}</div>
+                        <div style={{ color: "#6B7280", fontSize: "0.8rem", marginBottom: "1.25rem" }}>{plan.period}</div>
+                        {plan.features.map(f => (
+                          <div key={f} style={{ display: "flex", gap: "0.5rem", marginBottom: "0.6rem" }}>
+                            <span style={{ color: "#F97316" }}>✓</span>
+                            <span style={{ color: "#D1D5DB", fontSize: "0.85rem" }}>{f}</span>
+                          </div>
+                        ))}
+                        <button
+                          className={isCurrent ? "btn-outline" : "btn-primary"}
+                          style={{ width: "100%", marginTop: "1.25rem" }}
+                          disabled={isCurrent}
+                          onClick={isCurrent ? undefined : async () => {
+                            try {
+                              if (plan.name === "Free Trial") {
+                                await apiCancelSubscription();
+                                login({ ...user, plan: "Free Trial" }, localStorage.getItem("sh_token"));
+                                alert("You have been downgraded to Free Trial.");
+                              } else {
+                                const data = await apiInitiatePayment(plan.name);
+                                window.location.href = data.authorization_url;
+                              }
+                            } catch (err) {
+                              alert(err.detail || (plan.name === "Free Trial" ? "Failed to cancel subscription." : "Payment failed. Please try again."));
                             }
-                          } catch (err) {
-                            alert(err.detail || (plan.name === "Free Trial" ? "Failed to cancel subscription." : "Payment failed. Please try again."));
-                          }
-                        }}
-                      >
-                        {plan.current ? "Current Plan" : `Switch to ${plan.name}`}
-                      </button>
-                    </div>
-                  ))}
+                          }}
+                        >
+                          {isCurrent ? "Current Plan" : `Switch to ${plan.name}`}
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
