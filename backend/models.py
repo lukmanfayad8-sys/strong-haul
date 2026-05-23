@@ -29,6 +29,7 @@ class Vehicle(Base):
     location = Column(String)
     reg = Column(String)
     image_url = Column(String, nullable=True)
+    phone = Column(String, nullable=True)
     online = Column(Boolean, default=False)
     views = Column(Integer, default=0)
     contacts = Column(Integer, default=0)

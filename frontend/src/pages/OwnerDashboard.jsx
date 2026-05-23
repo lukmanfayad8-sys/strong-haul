@@ -40,7 +40,7 @@ export default function OwnerDashboard() {
   const [profileForm, setProfileForm] = useState({ username: OWNER.username, email: OWNER.email, password: "" });
   const [supportForm, setSupportForm] = useState({ subject: "", message: "" });
   const [supportSent, setSupportSent] = useState(false);
-  const [newVehicle, setNewVehicle] = useState({ name: "", type: "Tipper Truck", capacity: "", location: "", reg: "", image_url: "" });
+  const [newVehicle, setNewVehicle] = useState({ name: "", type: "Tipper Truck", capacity: "", location: "", phone: "", reg: "", image_url: "" });
   const [vehicleErrors, setVehicleErrors] = useState({});
 
   const unread = notifications.filter(n => !n.read).length;
@@ -100,7 +100,7 @@ export default function OwnerDashboard() {
     try {
       const created = await apiCreateVehicle(newVehicle);
       setVehicles(vs => [...vs, created]);
-      setNewVehicle({ name: "", type: "Tipper Truck", capacity: "", location: "", reg: "", image_url: "" });
+      setNewVehicle({ name: "", type: "Tipper Truck", capacity: "", location: "", phone: "", reg: "", image_url: "" });
       setVehicleErrors({});
       setShowAddVehicle(false);
     } catch (err) {
@@ -274,10 +274,18 @@ export default function OwnerDashboard() {
                   {vehicles.map(v => (
                     <div key={v.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.85rem 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                        <span style={{ fontSize: "1.5rem" }}>🚛</span>
+                        {v.image_url
+                          ? <img src={v.image_url} style={{ width: 60, height: 60, objectFit: "cover", borderRadius: "0.65rem" }} />
+                          : <div style={{ width: 60, height: 60, background: "#0A0A0A", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem" }}>🚛</div>
+                        }
                         <div>
                           <div style={{ fontWeight: 600, fontSize: "0.92rem" }}>{v.name}</div>
                           <div style={{ color: "#6B7280", fontSize: "0.78rem" }}>{v.type} · {v.capacity}</div>
+                          {v.phone && (
+                            <a href={`https://wa.me/${v.phone.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", background: "rgba(37,211,102,0.15)", color: "#25D366", padding: "0.4rem 0.85rem", fontSize: "0.8rem", fontWeight: 600, textDecoration: "none", marginTop: "0.5rem" }}>
+                              💬 WhatsApp
+                            </a>
+                          )}
                         </div>
                       </div>
                       <div style={{ display: "flex", gap: "1.5rem", alignItems: "center" }}>
@@ -322,7 +330,10 @@ export default function OwnerDashboard() {
                     <div key={v.id} className="vehicle-card">
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
                         <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
-                          <span style={{ fontSize: "2rem" }}>🚛</span>
+                          {v.image_url
+                            ? <img src={v.image_url} style={{ width: 60, height: 60, objectFit: "cover", borderRadius: "0.65rem" }} />
+                            : <div style={{ width: 60, height: 60, background: "#0A0A0A", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem" }}>🚛</div>
+                          }
                           <div>
                             <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "1.2rem" }}>{v.name}</h3>
                             <p style={{ color: "#9CA3AF", fontSize: "0.8rem" }}>{v.type} · {v.capacity}</p>
@@ -339,6 +350,12 @@ export default function OwnerDashboard() {
                           </div>
                         ))}
                       </div>
+
+                      {v.phone && (
+                        <a href={`https://wa.me/${v.phone.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", background: "rgba(37,211,102,0.15)", color: "#25D366", padding: "0.4rem 0.85rem", fontSize: "0.8rem", fontWeight: 600, textDecoration: "none", marginBottom: "1rem" }}>
+                          💬 WhatsApp
+                        </a>
+                      )}
 
                       <div style={{ display: "flex", gap: "0.75rem" }}>
                         <button className="btn-outline" style={{ flex: 1, padding: "0.55rem", fontSize: "0.78rem" }}>✏️ Edit</button>
@@ -513,7 +530,7 @@ export default function OwnerDashboard() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "1.1rem" }}>
-              {[["Vehicle Name", "name", "e.g. Mack Granite Tipper"], ["Capacity", "capacity", "e.g. 30 tons"], ["Location", "location", "e.g. Accra, Ghana"], ["Registration Number", "reg", "e.g. GR-1234-22"]].map(([label, field, placeholder]) => (
+              {["Vehicle Name", "name", "e.g. Mack Granite Tipper"], ["Capacity", "capacity", "e.g. 30 tons"], ["Location", "location", "e.g. Accra, Ghana"], ["WhatsApp / Phone Number", "phone", "e.g. +233 24 123 4567"], ["Registration Number", "reg", "e.g. GR-1234-22"]].map(([label, field, placeholder]) => (
                 <div key={field}>
                   <label style={{ color: "#9CA3AF", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "0.4rem" }}>{label}</label>
                   <input className={`dash-input ${vehicleErrors[field] ? "error" : ""}`} placeholder={placeholder} value={newVehicle[field]} onChange={e => { setNewVehicle(v => ({ ...v, [field]: e.target.value })); setVehicleErrors(er => ({ ...er, [field]: "" })); }} />
