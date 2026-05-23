@@ -37,6 +37,7 @@ export default function OwnerDashboard() {
   const [notifications, setNotifications] = useState(NOTIFICATIONS);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAddVehicle, setShowAddVehicle] = useState(false);
+  const [editing, setEditing] = useState(null);
   const [profileForm, setProfileForm] = useState({ username: OWNER.username, email: OWNER.email, password: "" });
   const [supportForm, setSupportForm] = useState({ subject: "", message: "" });
   const [supportSent, setSupportSent] = useState(false);
@@ -61,6 +62,21 @@ export default function OwnerDashboard() {
     } catch (err) {
       console.error("Failed to toggle vehicle online status:", err);
     }
+  };
+
+  const openEdit = (v) => {
+    setEditing(v.id);
+    setNewVehicle({
+      name: v.name,
+      type: v.type,
+      capacity: v.capacity,
+      location: v.location,
+      reg: v.reg,
+      phone: v.phone ?? "",
+      image_url: v.image_url ?? "",
+    });
+    setVehicleErrors({});
+    setShowAddVehicle(true);
   };
 
   const deleteVehicle = async (id) => {
@@ -358,7 +374,7 @@ export default function OwnerDashboard() {
                       )}
 
                       <div style={{ display: "flex", gap: "0.75rem" }}>
-                        <button className="btn-outline" style={{ flex: 1, padding: "0.55rem", fontSize: "0.78rem" }}>✏️ Edit</button>
+                        <button className="btn-outline" style={{ flex: 1, padding: "0.55rem", fontSize: "0.78rem" }} onClick={() => openEdit(v)}>✏️ Edit</button>
                         <button className="btn-danger" style={{ flex: 1 }} onClick={() => deleteVehicle(v.id)}>🗑️ Delete</button>
                       </div>
                     </div>
