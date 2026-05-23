@@ -40,6 +40,7 @@ class UserOut(BaseModel):
     id: int
     name: str
     email: str
+    role: str = "owner"
     avatar: Optional[str]
     plan: str
     is_active: bool
