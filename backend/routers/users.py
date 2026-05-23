@@ -32,8 +32,20 @@ async def google_auth(payload: dict, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid Google token")
 
     profile = res.json()
+    # First try to find by google_sub
     user = db.query(User).filter(User.google_sub == profile["sub"]).first()
 
+    # If not found by google_sub, try to find by email
+    if not user:
+        user = db.query(User).filter(User.email == profile["email"]).first()
+        if user:
+            # Link google_sub to existing account
+            user.google_sub = profile["sub"]
+            user.avatar = profile.get("picture")
+            db.commit()
+            db.refresh(user)
+
+    # If still not found, create new user
     if not user:
         user = User(
             google_sub=profile["sub"],
