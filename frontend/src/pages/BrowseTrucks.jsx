@@ -35,14 +35,29 @@ function capacityInRange(capacity, range) {
 export default function BrowseTrucks() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
-  const [type, setType] = useState("All Types");
-  const [capacity, setCapacity] = useState("All Capacities");
-  const [location, setLocation] = useState("All Locations");
+  const [type, setType] = useState("All");
+  const [capacity, setCapacity] = useState("All");
+  const [location, setLocation] = useState("All");
   const [availability, setAvailability] = useState("all");
   const [sort, setSort] = useState("Most Relevant");
   const [selected, setSelected] = useState(null);
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const typeOptions = useMemo(() => {
+    const types = [...new Set(listings.map(v => v.type).filter(Boolean))];
+    return ["All", ...types];
+  }, [listings]);
+
+  const capacityOptions = useMemo(() => {
+    const caps = [...new Set(listings.map(v => v.capacity).filter(Boolean))];
+    return ["All", ...caps];
+  }, [listings]);
+
+  const locationOptions = useMemo(() => {
+    const locs = [...new Set(listings.map(v => v.location).filter(Boolean))];
+    return ["All", ...locs];
+  }, [listings]);
 
   useEffect(() => {
     apiGetAllVehicles()
@@ -63,9 +78,9 @@ export default function BrowseTrucks() {
         v.name?.toLowerCase().includes(q) ||
         v.type?.toLowerCase().includes(q) ||
         v.location?.toLowerCase().includes(q);
-      const matchType = type === "All Types" || v.type === type;
-      const matchCap = capacityInRange(v.capacity, capacity);
-      const matchLoc = location === "All Locations" || v.country === location;
+      const matchType = type === "All" || v.type === type;
+      const matchCap = capacity === "All" || v.capacity?.toString() === capacity;
+      const matchLoc = location === "All" || v.location === location;
       const matchAvail = availability === "all" ||
         (availability === "available" && v.online) ||
         (availability === "unavailable" && !v.online);
@@ -164,19 +179,19 @@ export default function BrowseTrucks() {
           <div>
             <label style={{ color: "#6B7280", fontSize: "0.75rem", letterSpacing: "0.08em", textTransform: "uppercase", display: "block", marginBottom: "0.4rem" }}>Truck Type</label>
             <select className="filter-select" value={type} onChange={e => setType(e.target.value)}>
-              {TRUCK_TYPES.map(t => <option key={t}>{t}</option>)}
+              {typeOptions.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
           <div>
             <label style={{ color: "#6B7280", fontSize: "0.75rem", letterSpacing: "0.08em", textTransform: "uppercase", display: "block", marginBottom: "0.4rem" }}>Capacity</label>
             <select className="filter-select" value={capacity} onChange={e => setCapacity(e.target.value)}>
-              {CAPACITIES.map(c => <option key={c}>{c}</option>)}
+              {capacityOptions.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div>
             <label style={{ color: "#6B7280", fontSize: "0.75rem", letterSpacing: "0.08em", textTransform: "uppercase", display: "block", marginBottom: "0.4rem" }}>Country</label>
             <select className="filter-select" value={location} onChange={e => setLocation(e.target.value)}>
-              {LOCATIONS.map(l => <option key={l}>{l}</option>)}
+              {locationOptions.map(l => <option key={l} value={l}>{l}</option>)}
             </select>
           </div>
           <div>
