@@ -206,7 +206,7 @@ export default function BrowseTrucks() {
           </div>
         ) : (
           <div className="listings-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.25rem" }}>
-            {filtered.map(l => {
+            {filtered.filter(Boolean).map(l => {
               const tc = tierColor(l.tier);
               return (
                 <div key={l.id} className="truck-card" onClick={() => setSelected(l)}>
@@ -296,7 +296,7 @@ export default function BrowseTrucks() {
                     <div style={{ fontWeight: 600, marginBottom: "0.2rem" }}>{selected.owner}</div>
                     <div style={{ color: "#9CA3AF", fontSize: "0.88rem" }}>{selected.phone}</div>
                   </div>
-                  <div style={{ width: 44, height: 44, background: "#F97316", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.2rem" }}>{selected.owner[0]}</div>
+                  <div style={{ width: 44, height: 44, background: "#F97316", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.2rem" }}>{selected.owner?.[0] ?? "U"}</div>
                 </div>
               </div>
 
