@@ -54,6 +54,7 @@ class Subscription(Base):
     status = Column(String)
     paystack_customer_code = Column(String, nullable=True)
     paystack_subscription_code = Column(String, nullable=True)
+    paystack_email_token = Column(String, nullable=True)
     amount = Column(Integer)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     user = relationship("User")
