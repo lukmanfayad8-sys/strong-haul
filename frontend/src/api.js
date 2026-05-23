@@ -139,7 +139,32 @@ export const apiGetMySubscription = async () => {
   if (!res.ok) throw await res.json();
   return res.json();
 };
+// ── Notifications ─────────────────────────────────────────────────────────────
+export const apiGetNotifications = async () => {
+  const res = await fetch(`${BASE_URL}/notifications`, {
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw await res.json();
+  return res.json();
+};
 
+export const apiMarkNotificationRead = async (id) => {
+  const res = await fetch(`${BASE_URL}/notifications/${id}/read`, {
+    method: "PATCH",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw await res.json();
+  return res.json();
+};
+
+export const apiMarkAllNotificationsRead = async () => {
+  const res = await fetch(`${BASE_URL}/notifications/read-all`, {
+    method: "PATCH",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw await res.json();
+  return res.json();
+};
 // ── Admin ─────────────────────────────────────────────────────────────────────
 export const apiAdminDashboard = async () => {
   const res = await fetch(`${BASE_URL}/admin/dashboard`, {
