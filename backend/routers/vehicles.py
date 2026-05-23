@@ -19,6 +19,14 @@ def get_my_vehicles(current_user: User = Depends(get_current_user), db: Session 
 
 @router.post("/", response_model=VehicleOut)
 def create_vehicle(vehicle: VehicleCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    print("User plan:", current_user.plan)
+    print("User id:", current_user.id)
+    if current_user.plan == "Free Trial":
+        count = db.query(Vehicle).filter(Vehicle.owner_id == current_user.id).count()
+        print("Vehicle count:", count)
+        if count >= 3:
+            raise HTTPException(status_code=403, detail="Free Trial plan is limited to 3 listings. Please upgrade to Premium.")
+    
     db_vehicle = Vehicle(**vehicle.dict(), owner_id=current_user.id)
     db.add(db_vehicle)
     db.commit()
