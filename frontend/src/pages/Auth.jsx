@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { GoogleLogin } from "@react-oauth/google";
+import { useGoogleLogin } from "@react-oauth/google";
+import { useAuth } from "../context/AuthContext";
 
 export default function Auth() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [mode, setMode] = useState("login"); // "login" | "signup"
   const [form, setForm] = useState({ name: "", username: "", email: "", password: "", confirm: "" });
   const [errors, setErrors] = useState({});
@@ -38,11 +40,22 @@ export default function Auth() {
     setTimeout(() => navigate("/"), 2000);
   };
 
-  const handleGoogle = (credentialResponse) => {
-    console.log("Google login:", credentialResponse);
-    setSuccess(true);
-    setTimeout(() => navigate("/"), 2000);
-  };
+  const handleGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+        headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+      });
+      const profile = await res.json();
+      login({
+        name: profile.name,
+        email: profile.email,
+        avatar: profile.picture,
+        sub: profile.sub,
+      });
+      navigate("/dashboard");
+    },
+    onError: () => console.error("Google login failed"),
+  });
 
   return (
     <>
@@ -158,14 +171,13 @@ export default function Auth() {
 
             {/* Google Login */}
             <div style={{ marginBottom: "0.5rem" }}>
-              <GoogleLogin
-                onSuccess={handleGoogle}
-                onError={() => console.log("Google login failed")}
-                theme="filled_black"
-                shape="square"
-                width="100%"
-                text={mode === "login" ? "signin_with" : "signup_with"}
-              />
+              <button
+                onClick={() => handleGoogle()}
+                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem", background: "#111827", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", padding: "0.85rem 1rem", fontSize: "0.95rem", fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+              >
+                <span style={{ fontSize: "1rem" }}>🔎</span>
+                {mode === "login" ? "Sign in with Google" : "Sign up with Google"}
+              </button>
             </div>
 
             <div className="divider"><span>OR CONTINUE WITH EMAIL</span></div>
