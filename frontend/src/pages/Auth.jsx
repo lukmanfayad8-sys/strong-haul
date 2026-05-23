@@ -41,7 +41,8 @@ export default function Auth() {
     try {
       const data = await apiLogin(form.email, form.password);
       login(data.user, data.access_token);
-      navigate("/dashboard");
+      const destination = data.user.role === "admin" ? "/admin" : "/dashboard";
+      navigate(destination);
     } catch (err) {
       setAuthError(err?.detail || "Login failed");
     } finally {
@@ -75,7 +76,8 @@ export default function Auth() {
         // Save user to backend and get JWT
         const data = await apiGoogleAuth(tokenResponse.access_token);
         login(data.user, data.access_token);
-        navigate("/subscription");
+        const destination = data.user.role === "admin" ? "/admin" : "/dashboard";
+        navigate(destination);
       } catch (err) {
         setError("Google sign-in failed. Please try again.");
       }
