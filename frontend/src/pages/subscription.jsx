@@ -126,7 +126,7 @@ export default function Subscription() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const reference = params.get("reference");
+    const reference = params.get("reference") || params.get("trxref");
     const payment = params.get("payment");
     if (payment === "success" && reference) {
       apiVerifyPayment(reference)
