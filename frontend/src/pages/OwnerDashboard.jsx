@@ -1,6 +1,7 @@
 import { useAuth } from "../context/AuthContext.jsx";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiGetMyVehicles, apiCreateVehicle, apiUpdateVehicle, apiDeleteVehicle, apiUploadVehicleImage } from "../api";
 
 const OWNER = {
   name: "Kwame Asante",
@@ -10,12 +11,6 @@ const OWNER = {
   memberSince: "Jan 2025",
   avatar: "K",
 };
-
-const VEHICLES = [
-  { id: 1, name: "Mack Granite Tipper", type: "Tipper Truck", capacity: "30 tons", location: "Accra, Ghana", reg: "GR-1234-22", online: true, views: 142, contacts: 18 },
-  { id: 2, name: "Volvo FH16 Tanker", type: "Tanker Truck", capacity: "40 tons", location: "Kumasi, Ghana", reg: "GR-5678-21", online: false, views: 89, contacts: 7 },
-  { id: 3, name: "Liebherr LTM Crane", type: "Crane", capacity: "50 tons", location: "Tema, Ghana", reg: "GR-9012-20", online: true, views: 203, contacts: 31 },
-];
 
 const NOTIFICATIONS = [
   { id: 1, type: "contact", message: "A hirer from Lagos contacted you about Mack Granite Tipper", time: "2 hours ago", read: false },
@@ -38,14 +33,14 @@ export default function OwnerDashboard() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [active, setActive] = useState("dashboard");
-  const [vehicles, setVehicles] = useState(VEHICLES);
+  const [vehicles, setVehicles] = useState([]);
   const [notifications, setNotifications] = useState(NOTIFICATIONS);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAddVehicle, setShowAddVehicle] = useState(false);
   const [profileForm, setProfileForm] = useState({ username: OWNER.username, email: OWNER.email, password: "" });
   const [supportForm, setSupportForm] = useState({ subject: "", message: "" });
   const [supportSent, setSupportSent] = useState(false);
-  const [newVehicle, setNewVehicle] = useState({ name: "", type: "Tipper Truck", capacity: "", location: "", reg: "" });
+  const [newVehicle, setNewVehicle] = useState({ name: "", type: "Tipper Truck", capacity: "", location: "", reg: "", image_url: "" });
   const [vehicleErrors, setVehicleErrors] = useState({});
 
   const unread = notifications.filter(n => !n.read).length;
@@ -53,12 +48,28 @@ export default function OwnerDashboard() {
   const totalContacts = vehicles.reduce((a, v) => a + v.contacts, 0);
   const onlineCount = vehicles.filter(v => v.online).length;
 
-  const toggleOnline = (id) => {
-    setVehicles(vs => vs.map(v => v.id === id ? { ...v, online: !v.online } : v));
+  useEffect(() => {
+    apiGetMyVehicles()
+      .then(setVehicles)
+      .catch(err => console.error("Failed to load vehicles:", err));
+  }, []);
+
+  const toggleOnline = async (id) => {
+    try {
+      const updated = await apiUpdateVehicle(id, { online: !vehicles.find(v => v.id === id).online });
+      setVehicles(vs => vs.map(v => v.id === id ? updated : v));
+    } catch (err) {
+      console.error("Failed to toggle vehicle online status:", err);
+    }
   };
 
-  const deleteVehicle = (id) => {
-    setVehicles(vs => vs.filter(v => v.id !== id));
+  const deleteVehicle = async (id) => {
+    try {
+      await apiDeleteVehicle(id);
+      setVehicles(vs => vs.filter(v => v.id !== id));
+    } catch (err) {
+      console.error("Failed to delete vehicle:", err);
+    }
   };
 
   const markAllRead = () => {
@@ -74,13 +85,27 @@ export default function OwnerDashboard() {
     return e;
   };
 
-  const addVehicle = () => {
+  const uploadVehicleImage = async (file) => {
+    try {
+      const { url } = await apiUploadVehicleImage(file);
+      setNewVehicle(v => ({ ...v, image_url: url }));
+    } catch (err) {
+      console.error("Vehicle image upload failed:", err);
+    }
+  };
+
+  const addVehicle = async () => {
     const e = validateVehicle();
     if (Object.keys(e).length) { setVehicleErrors(e); return; }
-    setVehicles(vs => [...vs, { id: Date.now(), ...newVehicle, online: false, views: 0, contacts: 0 }]);
-    setNewVehicle({ name: "", type: "Tipper Truck", capacity: "", location: "", reg: "" });
-    setVehicleErrors({});
-    setShowAddVehicle(false);
+    try {
+      const created = await apiCreateVehicle(newVehicle);
+      setVehicles(vs => [...vs, created]);
+      setNewVehicle({ name: "", type: "Tipper Truck", capacity: "", location: "", reg: "", image_url: "" });
+      setVehicleErrors({});
+      setShowAddVehicle(false);
+    } catch (err) {
+      console.error("Failed to create vehicle:", err);
+    }
   };
 
   const sendSupport = () => {
@@ -501,6 +526,21 @@ export default function OwnerDashboard() {
                 <select className="dash-select" value={newVehicle.type} onChange={e => setNewVehicle(v => ({ ...v, type: e.target.value }))}>
                   {["Tipper Truck", "Flatbed Truck", "Tanker Truck", "Excavator", "Crane", "Lowboy", "Refrigerated Truck"].map(t => <option key={t}>{t}</option>)}
                 </select>
+              </div>
+
+              <div>
+                <label style={{ color: "#9CA3AF", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "0.4rem" }}>Vehicle Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="dash-input"
+                  onChange={async e => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      await uploadVehicleImage(file);
+                    }
+                  }}
+                />
               </div>
 
               <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
