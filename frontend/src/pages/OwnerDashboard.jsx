@@ -55,12 +55,14 @@ export default function OwnerDashboard() {
       .catch(err => console.error("Failed to load vehicles:", err));
   }, []);
 
-  const toggleOnline = async (id) => {
+  const toggleAvail = async (id) => {
+    const vehicle = vehicles.find(v => v.id === id);
+    if (!vehicle) return;
     try {
-      const updated = await apiUpdateVehicle(id, { online: !vehicles.find(v => v.id === id).online });
+      const updated = await apiUpdateVehicle(id, { online: !vehicle.online });
       setVehicles(vs => vs.map(v => v.id === id ? updated : v));
     } catch (err) {
-      console.error("Failed to toggle vehicle online status:", err);
+      console.error("Toggle failed:", err);
     }
   };
 
@@ -355,7 +357,7 @@ export default function OwnerDashboard() {
                             <p style={{ color: "#9CA3AF", fontSize: "0.8rem" }}>{v.type} · {v.capacity}</p>
                           </div>
                         </div>
-                        <button className={`toggle ${v.online ? "on" : ""}`} onClick={() => toggleOnline(v.id)} title={v.online ? "Set Offline" : "Set Online"} />
+                        <button className={`toggle ${v.online ? "on" : ""}`} onClick={() => toggleAvail(v.id)} title={v.online ? "Set Offline" : "Set Online"} />
                       </div>
 
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginBottom: "1rem" }}>
