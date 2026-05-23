@@ -10,3 +10,4 @@ httpx
 passlib[bcrypt]
 python-multipart
 bcrypt==4.3.0
+requests
