@@ -51,7 +51,7 @@ def initiate_subscription(
             "email": current_user.email,
             "amount": PLAN_AMOUNTS[payload.plan],
             "plan": PLAN_CODES[payload.plan],
-            "callback_url": "http://localhost:5173/dashboard?payment=success",
+            "callback_url": "http://localhost:5173/subscription?payment=success",
             "metadata": {
                 "user_id": current_user.id,
                 "plan": payload.plan,
