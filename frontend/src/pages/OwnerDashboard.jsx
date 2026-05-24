@@ -3,14 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiGetMyVehicles, apiCreateVehicle, apiUpdateVehicle, apiDeleteVehicle, apiUploadVehicleImage, apiCancelSubscription, apiInitiatePayment, apiSubmitComplaint, apiGetNotifications, apiMarkNotificationRead, apiMarkAllNotificationsRead, apiDeleteAccount, apiUpdateProfile } from "../api";
 
-const OWNER = {
-  name: "Kwame Asante",
-  username: "kwameasante",
-  email: "kwame@stronghaul.com",
-  plan: "Premium",
-  memberSince: "Jan 2025",
-  avatar: "K",
-};
+// OWNER constant removed; use authenticated `user` instead
 
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: "📊" },
@@ -138,6 +131,14 @@ export default function OwnerDashboard() {
       const message = err.detail || "Failed to save vehicle. Please try again.";
       setErrors({ general: message });
     }
+  };
+
+  const closeVehicleModal = () => {
+    setShowAddVehicle(false);
+    setEditing(null);
+    setNewVehicle({ name: "", type: "Tipper Truck", capacity: "", location: "", phone: "", reg: "", image_url: "" });
+    setVehicleErrors({});
+    setErrors({});
   };
 
   const sendSupport = async () => {
@@ -307,7 +308,7 @@ export default function OwnerDashboard() {
               <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.6rem" }}>
                 {NAV_ITEMS.find(n => n.id === active)?.label}
               </h1>
-              <p style={{ color: "#6B7280", fontSize: "0.8rem" }}>Member since {OWNER.memberSince}</p>
+              <p style={{ color: "#6B7280", fontSize: "0.8rem" }}>Member since {user?.created_at ? new Date(user.created_at).toLocaleDateString() : "-"}</p>
             </div>
             <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
               <button onClick={() => setActive("notifications")} style={{ background: "none", border: "none", color: "#9CA3AF", cursor: "pointer", fontSize: "1.3rem", position: "relative" }}>
@@ -663,11 +664,11 @@ export default function OwnerDashboard() {
 
       {/* ADD VEHICLE MODAL */}
       {showAddVehicle && (
-        <div className="modal-overlay" onClick={() => setShowAddVehicle(false)}>
+        <div className="modal-overlay" onClick={closeVehicleModal}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
               <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.8rem" }}>Add Vehicle</h2>
-              <button onClick={() => setShowAddVehicle(false)} style={{ background: "none", border: "none", color: "#9CA3AF", fontSize: "1.2rem", cursor: "pointer" }}>✕</button>
+              <button onClick={closeVehicleModal} style={{ background: "none", border: "none", color: "#9CA3AF", fontSize: "1.2rem", cursor: "pointer" }}>✕</button>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "1.1rem" }}>
@@ -708,7 +709,7 @@ export default function OwnerDashboard() {
               )}
               <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
                 <button className="btn-primary" style={{ flex: 1 }} onClick={addVehicle}>Add Vehicle</button>
-                <button className="btn-outline" style={{ flex: 1 }} onClick={() => setShowAddVehicle(false)}>Cancel</button>
+                <button className="btn-outline" style={{ flex: 1 }} onClick={closeVehicleModal}>Cancel</button>
               </div>
             </div>
           </div>

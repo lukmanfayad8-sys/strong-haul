@@ -18,7 +18,6 @@ HEADERS = {
     "Authorization": f"Bearer {PAYSTACK_SECRET}",
     "Content-Type": "application/json",
 }
-print("Paystack key:", PAYSTACK_SECRET[:15] if PAYSTACK_SECRET else "NOT FOUND")
 
 # Plan codes — create these in Paystack dashboard first
 PLAN_CODES = {

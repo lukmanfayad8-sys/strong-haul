@@ -1,4 +1,5 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import { apiGetMe } from "../api";
 
 const AuthContext = createContext(null);
 
@@ -21,6 +22,31 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("sh_token");
     setUser(null);
   };
+
+  useEffect(() => {
+    const token = localStorage.getItem("sh_token");
+    if (!token) return;
+
+    let mounted = true;
+    apiGetMe()
+      .then((fresh) => {
+        if (!mounted) return;
+        setUser(fresh);
+        localStorage.setItem("sh_user", JSON.stringify(fresh));
+      })
+      .catch((err) => {
+        const status = err?.status || err?.status_code || err?.statusCode;
+        if (status === 401 || status === 403) {
+          localStorage.removeItem("sh_user");
+          localStorage.removeItem("sh_token");
+          setUser(null);
+        } else {
+          console.error("Failed to refresh user on mount:", err);
+        }
+      });
+
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>

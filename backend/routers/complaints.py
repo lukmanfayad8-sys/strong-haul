@@ -15,7 +15,7 @@ def submit_complaint(
 ):
     complaint = Complaint(
         user_id=current_user.id,
-        email=payload.email,
+        email=current_user.email,
         subject=payload.subject,
         category=payload.category,
         message=payload.message,

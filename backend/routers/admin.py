@@ -9,10 +9,25 @@ from pydantic import BaseModel
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
+# Module-level subscription prices
+_subscription_prices = {
+    "Premium": "29000",
+    "Enterprise": "99000",
+}
+
 # ── Guard ─────────────────────────────────────────────────────────────────────
 def require_admin(current_user: User = Depends(get_current_user)):
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
+
+
+def require_super_admin(current_user: User = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    sec = getattr(current_user, "admin_section", None)
+    if sec not in (None, "", "all"):
+        raise HTTPException(status_code=403, detail="Super admin access required")
     return current_user
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
@@ -77,11 +92,11 @@ class EmployeeCreate(BaseModel):
     section: str
 
 @router.get("/employees")
-def get_employees(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+def get_employees(db: Session = Depends(get_db), admin: User = Depends(require_super_admin)):
     return db.query(User).filter(User.role == "admin").all()
 
 @router.post("/employees")
-def add_employee(payload: EmployeeCreate, db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+def add_employee(payload: EmployeeCreate, db: Session = Depends(get_db), admin: User = Depends(require_super_admin)):
     existing = db.query(User).filter(User.email == payload.email).first()
     if existing:
         existing.role = "admin"
@@ -91,7 +106,7 @@ def add_employee(payload: EmployeeCreate, db: Session = Depends(get_db), admin: 
     raise HTTPException(status_code=404, detail="User must register first before being made a sub-admin")
 
 @router.patch("/employees/{user_id}/toggle")
-def toggle_employee(user_id: int, db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+def toggle_employee(user_id: int, db: Session = Depends(get_db), admin: User = Depends(require_super_admin)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Employee not found")
@@ -148,13 +163,21 @@ class SubscriptionPriceUpdate(BaseModel):
     price: str
 
 
+@router.get("/subscriptions/prices")
+def get_subscription_prices(admin: User = Depends(require_admin)):
+    return _subscription_prices
+
+
 @router.patch("/subscriptions/price")
-def update_subscription_price(payload: SubscriptionPriceUpdate, admin: User = Depends(require_admin)):
-    # Pricing data is stored externally; this endpoint accepts admin updates and returns the new values.
+def update_subscription_price(payload: SubscriptionPriceUpdate, admin: User = Depends(require_super_admin)):
+    # Update in-memory subscription price mapping
+    plan = payload.plan
+    price = payload.price
+    _subscription_prices[plan] = price
     return {
-        "plan": payload.plan,
-        "price": payload.price,
-        "message": f"{payload.plan} price updated to {payload.price} successfully",
+        "plan": plan,
+        "price": price,
+        "message": f"{plan} price updated to {price} successfully",
     }
 
 # ── Analytics ─────────────────────────────────────────────────────────────────
@@ -162,12 +185,13 @@ def update_subscription_price(payload: SubscriptionPriceUpdate, admin: User = De
 def get_monthly_stats(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
     from sqlalchemy import extract, func
     from datetime import datetime, timedelta
+    from dateutil.relativedelta import relativedelta
     
     results = []
     today = datetime.utcnow()
     
     for i in range(6, -1, -1):
-        month_date = today - timedelta(days=i * 30)
+        month_date = today - relativedelta(months=i)
         month = month_date.month
         year = month_date.year
         count = db.query(User).filter(

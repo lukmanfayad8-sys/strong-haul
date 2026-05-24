@@ -202,7 +202,6 @@ export const apiSubmitComplaint = async (subject, category, message) => {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({ 
-      email: JSON.parse(localStorage.getItem("sh_user"))?.email ?? "",
       subject, 
       category, 
       message 

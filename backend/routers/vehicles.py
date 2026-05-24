@@ -6,12 +6,35 @@ from schemas import VehicleCreate, VehicleUpdate, VehicleOut
 from routers.users import get_current_user
 from models import User
 from typing import List
+from typing import Optional
+from sqlalchemy import or_
 
 router = APIRouter(prefix="/vehicles", tags=["vehicles"])
 
 @router.get("/", response_model=List[VehicleOut])
-def get_all_vehicles(db: Session = Depends(get_db)):
-    return db.query(Vehicle).filter(Vehicle.online == True).all()
+def get_all_vehicles(
+    skip: int = 0,
+    limit: int = 20,
+    location: Optional[str] = None,
+    truck_type: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    # enforce sensible defaults and caps
+    if limit is None:
+        limit = 20
+    limit = min(max(1, limit), 100)
+
+    query = db.query(Vehicle).filter(Vehicle.online == True)
+    if location:
+        query = query.filter(Vehicle.location.ilike(f"%{location}%"))
+    if truck_type:
+        # prefer exact match on truck_type field
+        if hasattr(Vehicle, 'truck_type'):
+            query = query.filter(Vehicle.truck_type == truck_type)
+        else:
+            query = query.filter(Vehicle.type == truck_type)
+
+    return query.offset(skip).limit(limit).all()
 
 @router.get("/mine", response_model=List[VehicleOut])
 def get_my_vehicles(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -27,7 +50,13 @@ def create_vehicle(vehicle: VehicleCreate, current_user: User = Depends(get_curr
         if count >= 3:
             raise HTTPException(status_code=403, detail="Free Trial plan is limited to 3 listings. Please upgrade to Premium.")
     
-    db_vehicle = Vehicle(**vehicle.dict(), owner_id=current_user.id)
+    # pydantic v2 compatibility: use model_dump() if available
+    try:
+        payload_dict = vehicle.model_dump()
+    except Exception:
+        payload_dict = vehicle.dict()
+
+    db_vehicle = Vehicle(**payload_dict, owner_id=current_user.id)
     db.add(db_vehicle)
     db.commit()
     db.refresh(db_vehicle)

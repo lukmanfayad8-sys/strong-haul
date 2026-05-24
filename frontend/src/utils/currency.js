@@ -16,8 +16,11 @@ const CURRENCY_MAP = {
 const DEFAULT_CURRENCY = { code: "GHS", symbol: "GH₵", name: "Ghana Cedi" };
 
 export const detectCurrency = async () => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 3000);
   try {
-    const res = await fetch("https://ipapi.co/json/");
+    const res = await fetch("https://ipapi.co/json/", { signal: controller.signal });
+    clearTimeout(timeoutId);
     const data = await res.json();
     return CURRENCY_MAP[data.country_code] ?? DEFAULT_CURRENCY;
   } catch {

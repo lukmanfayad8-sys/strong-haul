@@ -483,10 +483,10 @@ export default function App() {
             <div style={{ color: "#F97316", fontSize: "0.75rem", letterSpacing: "0.12em", fontWeight: 700, marginBottom: "1rem", textTransform: "uppercase" }}>Follow Us</div>
             {["LinkedIn", "Twitter / X", "Instagram", "Facebook"].map(l => (
               <div key={l} onClick={() => {
-                if (l === "LinkedIn") navigate("https://linkedin.com/company/strong-haul");
-                if (l === "Twitter / X") navigate("https://twitter.com/strong_haul");
-                if (l === "Instagram") navigate("https://instagram.com/strong_haul");
-                if (l === "Facebook") navigate("https://facebook.com/strong-haul");
+                if (l === "LinkedIn") window.open("https://linkedin.com/company/strong-haul", "_blank", "noopener,noreferrer");
+                if (l === "Twitter / X") window.open("https://twitter.com/strong_haul", "_blank", "noopener,noreferrer");
+                if (l === "Instagram") window.open("https://instagram.com/strong_haul", "_blank", "noopener,noreferrer");
+                if (l === "Facebook") window.open("https://facebook.com/strong-haul", "_blank", "noopener,noreferrer");
               }} style={{ color: "#6B7280", fontSize: "0.88rem", marginBottom: "0.6rem", cursor: "pointer" }}>{l}</div>
             ))}
           </div>

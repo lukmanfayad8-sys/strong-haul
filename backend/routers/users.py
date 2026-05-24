@@ -63,6 +63,9 @@ async def google_auth(payload: dict, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(user)
 
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Your account has been deactivated. Please contact support.")
+
     token = create_access_token({"user_id": user.id})
     return {"access_token": token, "token_type": "bearer", "user": user}
 
@@ -94,6 +97,8 @@ def login(payload: UserLogin, db: Session = Depends(get_db)):
 
     if not pwd_context.verify(payload.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid email or password")
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Your account has been deactivated. Please contact support.")
 
     token = create_access_token({"user_id": user.id})
     return {"access_token": token, "token_type": "bearer", "user": user}
@@ -108,7 +113,9 @@ def update_me(
     current_user: User = Depends(get_current_user), 
     db: Session = Depends(get_db)
 ):
-    if payload.name:
+    if payload.name is not None:
+        if payload.name.strip() == "":
+            raise HTTPException(status_code=400, detail="Name cannot be empty")
         current_user.name = payload.name
     if payload.password:
         current_user.password_hash = pwd_context.hash(payload.password)
