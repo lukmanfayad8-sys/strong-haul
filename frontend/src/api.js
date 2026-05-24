@@ -176,7 +176,7 @@ export const apiAdminDashboard = async () => {
 
 // ── Complaints ────────────────────────────────────────────────────────────────
 export const apiSubmitComplaint = async (subject, category, message) => {
-  const res = await fetch(`${BASE_URL}/complaints`, {
+  const res = await fetch(`${BASE_URL}/complaints/`, {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({ 

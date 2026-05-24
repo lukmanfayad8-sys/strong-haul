@@ -30,7 +30,7 @@ export default function OwnerDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAddVehicle, setShowAddVehicle] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [profileForm, setProfileForm] = useState({ username: OWNER.username, email: OWNER.email, password: "" });
+  const [profileForm, setProfileForm] = useState({ name: user?.name ?? "", username: user?.email?.split("@")[0] ?? "", email: user?.email ?? "", password: "", confirm: "" });
   const [supportForm, setSupportForm] = useState({ subject: "", category: "General Enquiry", message: "" });
   const [supportSent, setSupportSent] = useState(false);
   const [newVehicle, setNewVehicle] = useState({ name: "", type: "Tipper Truck", capacity: "", location: "", phone: "", reg: "", image_url: "" });
@@ -549,10 +549,15 @@ export default function OwnerDashboard() {
 
                 <div style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", padding: "2rem", marginBottom: "1.5rem" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "2rem" }}>
-                    <div style={{ width: 56, height: 56, background: "#F97316", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.5rem" }}>{OWNER.avatar}</div>
+                    {user?.avatar
+                      ? <img src={user.avatar} style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover" }} />
+                      : <div style={{ width: 56, height: 56, background: "#F97316", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.5rem" }}>
+                          {user?.name?.charAt(0) ?? "U"}
+                        </div>
+                    }
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: "1.1rem" }}>{OWNER.name}</div>
-                      <div style={{ color: "#9CA3AF", fontSize: "0.85rem" }}>@{profileForm.username}</div>
+                      <div style={{ fontWeight: 700, fontSize: "1.1rem" }}>{user?.name ?? "Owner"}</div>
+                      <div style={{ color: "#9CA3AF", fontSize: "0.85rem" }}>@{user?.email?.split("@")[0] ?? "owner"}</div>
                     </div>
                   </div>
 
@@ -594,6 +599,21 @@ export default function OwnerDashboard() {
                     <div>
                       <label style={{ color: "#9CA3AF", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "0.4rem" }}>Subject</label>
                       <input className="dash-input" placeholder="e.g. Issue with my listing" value={supportForm.subject} onChange={e => setSupportForm(f => ({ ...f, subject: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label style={{ color: "#9CA3AF", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "0.4rem" }}>Category</label>
+                      <select className="dash-input" value={supportForm.category} onChange={e => setSupportForm(f => ({ ...f, category: e.target.value }))}>
+                        {[
+                          "General Enquiry",
+                          "Billing Issue",
+                          "Listing Problem",
+                          "Technical Support",
+                          "Report Abuse",
+                          "Other",
+                        ].map(option => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label style={{ color: "#9CA3AF", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "0.4rem" }}>Message</label>
