@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiAdminDashboard, apiAdminGetUsers, apiAdminToggleUser, apiAdminGetComplaints, apiAdminResolveComplaint, apiAdminSendAnnouncement, apiAdminGetSubscriptions, apiAdminMonthlyStats } from "../api";
+import { apiAdminDashboard, apiAdminGetUsers, apiAdminToggleUser, apiAdminGetComplaints, apiAdminResolveComplaint, apiAdminSendAnnouncement, apiAdminGetSubscriptions, apiAdminMonthlyStats, apiAdminGetEmployees, apiAdminAddEmployee, apiAdminToggleEmployee } from "../api";
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 const SUPER_ADMIN = { name: "Admin", username: "superadmin", role: "Super Admin", avatar: "A" };
@@ -234,16 +234,28 @@ function AdminSupportSection({ employees, setEmployees }) {
     return e;
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
-    setEmployees(prev => [...prev, { id: Date.now(), ...form, status: "active", since: "May 2026" }]);
-    setShowForm(false);
-    setForm({ name: "", username: "", email: "", section: "Users" });
-    setErrors({});
+    try {
+      const newEmp = await apiAdminAddEmployee(form.name, form.email, form.section);
+      setEmployees(prev => [...prev, newEmp]);
+      setShowForm(false);
+      setForm({ name: "", username: "", email: "", section: "Users" });
+      setErrors({});
+    } catch (err) {
+      setErrors({ general: err.detail || "Failed to add sub-admin. Make sure the user has registered first." });
+    }
   };
 
-  const toggleEmp = (id) => setEmployees(prev => prev.map(e => e.id === id ? { ...e, status: e.status === "active" ? "inactive" : "active" } : e));
+  const toggleEmp = async (id) => {
+    try {
+      const updated = await apiAdminToggleEmployee(id);
+      setEmployees(prev => prev.map(e => e.id === id ? { ...e, is_active: updated.is_active } : e));
+    } catch (err) {
+      console.error("Failed to toggle employee:", err);
+    }
+  };
 
   return (
     <div>
@@ -268,12 +280,12 @@ function AdminSupportSection({ employees, setEmployees }) {
                 <td style={{ ...TD, color: "#9CA3AF" }}>@{emp.username}</td>
                 <td style={{ ...TD, color: "#9CA3AF" }}>{emp.email}</td>
                 <td style={TD}><span style={{ background: "rgba(249,115,22,0.12)", color: "#F97316", fontSize: "0.75rem", padding: "0.2rem 0.6rem", fontWeight: 600 }}>{emp.section}</span></td>
-                <td style={TD}><span style={STATUS_STYLE(emp.status)}>{emp.status}</span></td>
+                <td style={TD}><span style={STATUS_STYLE(emp.is_active ? "active" : "inactive")}>{emp.is_active ? "active" : "inactive"}</span></td>
                 <td style={{ ...TD, color: "#6B7280" }}>{emp.since}</td>
                 <td style={TD}>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }} onClick={() => toggleEmp(emp.id)}>
-                    <div style={{ width: 28, height: 16, background: emp.status === "active" ? "#F97316" : "#374151", borderRadius: 8, position: "relative", transition: "background 0.2s" }}>
-                      <div style={{ position: "absolute", top: 2, left: emp.status === "active" ? 14 : 2, width: 12, height: 12, background: "#fff", borderRadius: "50%", transition: "left 0.2s" }} />
+                    <div style={{ width: 28, height: 16, background: emp.is_active ? "#F97316" : "#374151", borderRadius: 8, position: "relative", transition: "background 0.2s" }}>
+                      <div style={{ position: "absolute", top: 2, left: emp.is_active ? 14 : 2, width: 12, height: 12, background: "#fff", borderRadius: "50%", transition: "left 0.2s" }} />
                     </div>
                   </div>
                 </td>
@@ -309,6 +321,11 @@ function AdminSupportSection({ employees, setEmployees }) {
                   {SECTIONS.map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
+              {errors.general && (
+                <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444", padding: "0.75rem 1rem", fontSize: "0.85rem", marginBottom: "0.75rem" }}>
+                  {errors.general}
+                </div>
+              )}
               <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
                 <button className="btn-primary" onClick={handleAdd} style={{ flex: 1 }}>Add Sub-Admin</button>
                 <button className="btn-outline" onClick={() => setShowForm(false)} style={{ flex: 1 }}>Cancel</button>
@@ -395,28 +412,32 @@ function EmployeesSection({ employees }) {
         <h2 style={H2}>EMPLOYEES</h2>
         <p style={{ color: "#6B7280", fontSize: "0.85rem", marginTop: "0.4rem" }}>All sub-admins added by super admin. Manage access from Admin-Support.</p>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1rem" }}>
-        {employees.map(emp => (
-          <div key={emp.id} style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", padding: "1.5rem", display: "flex", gap: "1rem", alignItems: "flex-start" }}>
-            <div style={{ width: 44, height: 44, background: emp.status === "active" ? "rgba(249,115,22,0.2)" : "rgba(255,255,255,0.05)", border: `1px solid ${emp.status === "active" ? "rgba(249,115,22,0.3)" : "rgba(255,255,255,0.1)"}`, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.1rem", color: emp.status === "active" ? "#F97316" : "#6B7280", flexShrink: 0 }}>
-              {emp.name.charAt(0)}
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>{emp.name}</div>
-                  <div style={{ color: "#6B7280", fontSize: "0.78rem" }}>@{emp.username}</div>
+      {employees.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "3rem", color: "#4B5563" }}>No sub-admins added yet.</div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1rem" }}>
+          {employees.map(emp => (
+            <div key={emp.id} style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", padding: "1.5rem", display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+              <div style={{ width: 44, height: 44, background: emp.is_active ? "rgba(249,115,22,0.2)" : "rgba(255,255,255,0.05)", border: `1px solid ${emp.is_active ? "rgba(249,115,22,0.3)" : "rgba(255,255,255,0.1)"}`, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.1rem", color: emp.is_active ? "#F97316" : "#6B7280", flexShrink: 0 }}>
+                {(emp.name ?? emp.email)?.charAt(0) ?? "?"}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>{emp.name ?? emp.email}</div>
+                    <div style={{ color: "#6B7280", fontSize: "0.78rem" }}>@{emp.username ?? emp.email?.split("@")[0]}</div>
+                  </div>
+                  <span style={STATUS_STYLE(emp.is_active ? "active" : "inactive")}>{emp.is_active ? "active" : "inactive"}</span>
                 </div>
-                <span style={STATUS_STYLE(emp.status)}>{emp.status}</span>
-              </div>
-              <div style={{ marginTop: "0.75rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                <span style={{ background: "rgba(249,115,22,0.12)", color: "#F97316", fontSize: "0.72rem", padding: "0.2rem 0.6rem", fontWeight: 600 }}>{emp.section}</span>
-                <span style={{ color: "#4B5563", fontSize: "0.75rem", padding: "0.2rem 0" }}>Since {emp.since}</span>
+                <div style={{ marginTop: "0.75rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                  <span style={{ background: "rgba(249,115,22,0.12)", color: "#F97316", fontSize: "0.72rem", padding: "0.2rem 0.6rem", fontWeight: 600 }}>{emp.admin_section ?? emp.section ?? "Unassigned"}</span>
+                  <span style={{ color: "#4B5563", fontSize: "0.75rem", padding: "0.2rem 0" }}>{emp.created_at ? new Date(emp.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "—"}</span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -620,6 +641,7 @@ export default function AdminPanel() {
       });
 
     apiAdminMonthlyStats().then(setMonthlyData).catch(console.error);
+    apiAdminGetEmployees().then(setEmployees).catch(console.error);
   }, []);
 
   if (loading) return <div style={{ color: "#fff", padding: "4rem", textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontSize: "2rem" }}>LOADING...</div>;
@@ -726,7 +748,7 @@ export default function AdminPanel() {
             {active === "users" && <UsersSection users={users} setUsers={setUsers} />}
             {active === "support" && <AdminSupportSection employees={employees} setEmployees={setEmployees} />}
             {active === "complaints" && <ComplaintsSection complaints={complaints} setComplaints={setComplaints} />}
-            {active === "employees" && <EmployeesSection employees={employees} />}
+            {active === "employees" && <EmployeesSection employees={employees} setEmployees={setEmployees} />}
             {active === "announcements" && <AnnouncementsSection />}
             {active === "subscriptions" && <SubscriptionsSection users={users} setUsers={setUsers} />}
           </div>

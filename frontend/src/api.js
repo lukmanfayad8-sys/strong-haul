@@ -264,6 +264,33 @@ export const apiAdminGetSubscriptions = async () => {
   return res.json();
 };
 
+export const apiAdminGetEmployees = async () => {
+  const res = await fetch(`${BASE_URL}/admin/employees`, {
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw await res.json();
+  return res.json();
+};
+
+export const apiAdminAddEmployee = async (name, email, section) => {
+  const res = await fetch(`${BASE_URL}/admin/employees`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ name, email, section }),
+  });
+  if (!res.ok) throw await res.json();
+  return res.json();
+};
+
+export const apiAdminToggleEmployee = async (userId) => {
+  const res = await fetch(`${BASE_URL}/admin/employees/${userId}/toggle`, {
+    method: "PATCH",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw await res.json();
+  return res.json();
+};
+
 export const apiAdminMonthlyStats = async () => {
   const res = await fetch(`${BASE_URL}/admin/monthly-stats`, {
     headers: authHeaders(),
