@@ -81,9 +81,10 @@ export default function BrowseTrucks() {
       const matchType = type === "All" || v.type === type;
       const matchCap = capacity === "All" || v.capacity?.toString() === capacity;
       const matchLoc = location === "All" || v.location === location;
+      const online = v.online ?? v.available;
       const matchAvail = availability === "all" ||
-        (availability === "available" && v.online) ||
-        (availability === "unavailable" && !v.online);
+        (availability === "available" && online) ||
+        (availability === "unavailable" && !online);
       return matchSearch && matchType && matchCap && matchLoc && matchAvail;
     });
 
@@ -101,6 +102,8 @@ export default function BrowseTrucks() {
 
   if (loading) return <div style={{ color: "#fff", padding: "4rem", textAlign: "center" }}>Loading listings...</div>;
   if (!loading && listings.length === 0) return <div style={{ textAlign: "center", padding: "4rem", color: "#6B7280" }}>No vehicles listed yet.</div>;
+
+  const selectedOnline = selected ? selected.online ?? selected.available : false;
 
   return (
     <>
@@ -222,6 +225,7 @@ export default function BrowseTrucks() {
         ) : (
           <div className="listings-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.25rem" }}>
             {filtered.filter(Boolean).map(l => {
+              const online = l.online ?? l.available;
               const tc = tierColor(l.tier);
               return (
                 <div key={l.id} className="truck-card" onClick={() => setSelected(l)}>
@@ -238,8 +242,8 @@ export default function BrowseTrucks() {
                   <div style={{ padding: "1.25rem" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
                       <span style={{ color: "#9CA3AF", fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>{l.type}</span>
-                      <span style={{ background: l.online ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)", color: l.online ? "#22c55e" : "#ef4444", fontSize: "0.7rem", fontWeight: 700, padding: "0.2rem 0.55rem", letterSpacing: "0.04em" }}>
-                        {l.online ? "● AVAILABLE" : "● UNAVAILABLE"}
+                      <span style={{ background: online ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)", color: online ? "#22c55e" : "#ef4444", fontSize: "0.7rem", fontWeight: 700, padding: "0.2rem 0.55rem", letterSpacing: "0.04em" }}>
+                        {online ? "● AVAILABLE" : "● UNAVAILABLE"}
                       </span>
                     </div>
 
@@ -281,8 +285,8 @@ export default function BrowseTrucks() {
                   <span style={{ color: "#9CA3AF", fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>{selected.type}</span>
                   <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "2rem", lineHeight: 1.1 }}>{selected.name}</h2>
                 </div>
-                <span style={{ background: selected.online ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)", color: selected.online ? "#22c55e" : "#ef4444", fontSize: "0.75rem", fontWeight: 700, padding: "0.35rem 0.75rem" }}>
-                  {selected.online ? "AVAILABLE" : "UNAVAILABLE"}
+                <span style={{ background: selectedOnline ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)", color: selectedOnline ? "#22c55e" : "#ef4444", fontSize: "0.75rem", fontWeight: 700, padding: "0.35rem 0.75rem" }}>
+                  {selectedOnline ? "AVAILABLE" : "UNAVAILABLE"}
                 </span>
               </div>
 

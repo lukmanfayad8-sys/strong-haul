@@ -40,8 +40,8 @@ export default function OwnerDashboard() {
   const [errors, setErrors] = useState({});
 
   const unread = notifications.filter(n => !n.read).length;
-  const totalViews = vehicles.reduce((a, v) => a + v.views, 0);
-  const totalContacts = vehicles.reduce((a, v) => a + v.contacts, 0);
+  const totalViews = vehicles.reduce((a, v) => a + (v.views ?? 0), 0);
+  const totalContacts = vehicles.reduce((a, v) => a + (v.contacts ?? 0), 0);
   const onlineCount = vehicles.filter(v => v.online).length;
 
   useEffect(() => {
@@ -368,11 +368,11 @@ export default function OwnerDashboard() {
                       </div>
                       <div style={{ display: "flex", gap: "1.5rem", alignItems: "center" }}>
                         <div style={{ textAlign: "center" }}>
-                          <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>{v.views}</div>
+                          <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>{v.views ?? 0}</div>
                           <div style={{ color: "#6B7280", fontSize: "0.72rem" }}>Views</div>
                         </div>
                         <div style={{ textAlign: "center" }}>
-                          <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>{v.contacts}</div>
+                          <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>{v.contacts ?? 0}</div>
                           <div style={{ color: "#6B7280", fontSize: "0.72rem" }}>Contacts</div>
                         </div>
                         <span style={{ background: v.online ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)", color: v.online ? "#22c55e" : "#ef4444", fontSize: "0.72rem", fontWeight: 700, padding: "0.2rem 0.6rem" }}>{v.online ? "ONLINE" : "OFFLINE"}</span>
@@ -421,7 +421,7 @@ export default function OwnerDashboard() {
                       </div>
 
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginBottom: "1rem" }}>
-                        {[["📍 Location", v.location], ["🔖 Reg", v.reg], ["👁️ Views", v.views], ["📞 Contacts", v.contacts]].map(([label, val]) => (
+                        {[["📍 Location", v.location], ["🔖 Reg", v.reg], ["👁️ Views", v.views ?? 0], ["📞 Contacts", v.contacts ?? 0]].map(([label, val]) => (
                           <div key={label} style={{ background: "#0A0A0A", padding: "0.65rem 0.85rem" }}>
                             <div style={{ color: "#6B7280", fontSize: "0.7rem", marginBottom: "0.2rem" }}>{label}</div>
                             <div style={{ fontWeight: 600, fontSize: "0.88rem" }}>{val}</div>
