@@ -133,3 +133,28 @@ def send_announcement(payload: AnnouncementPayload, db: Session = Depends(get_db
 def get_subscriptions(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
     users = db.query(User).filter(User.plan != "Free Trial").all()
     return [{"id": u.id, "email": u.email, "plan": u.plan, "is_active": u.is_active} for u in users]
+
+# ── Analytics ─────────────────────────────────────────────────────────────────
+@router.get("/monthly-stats")
+def get_monthly_stats(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+    from sqlalchemy import extract, func
+    from datetime import datetime, timedelta
+    
+    results = []
+    today = datetime.utcnow()
+    
+    for i in range(6, -1, -1):
+        month_date = today - timedelta(days=i * 30)
+        month = month_date.month
+        year = month_date.year
+        count = db.query(User).filter(
+            User.plan.in_(["Premium", "Enterprise"]),
+            extract("month", User.created_at) == month,
+            extract("year", User.created_at) == year,
+        ).count()
+        results.append({
+            "month": month_date.strftime("%b"),
+            "subs": count
+        })
+    
+    return results
