@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiAdminDashboard, apiAdminGetUsers, apiAdminToggleUser, apiAdminGetComplaints, apiAdminResolveComplaint, apiAdminSendAnnouncement, apiAdminGetSubscriptions } from "../api";
+import { apiAdminDashboard, apiAdminGetUsers, apiAdminToggleUser, apiAdminGetComplaints, apiAdminResolveComplaint, apiAdminSendAnnouncement, apiAdminGetSubscriptions, apiAdminMonthlyStats } from "../api";
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 const SUPER_ADMIN = { name: "Admin", username: "superadmin", role: "Super Admin", avatar: "A" };
@@ -32,14 +32,13 @@ const STATUS_STYLE = (s) => ({ background: s === "active" ? "rgba(34,197,94,0.12
 
 // ─── Sections ─────────────────────────────────────────────────────────────────
 
-function DashboardSection({ users, complaints, dashboardStats }) {
+function DashboardSection({ users, complaints, dashboardStats, monthlyData }) {
   const totalOwners = dashboardStats?.total_owners ?? 0;
   const activeSubs = dashboardStats?.active_owners ?? 0;
   const premium = dashboardStats?.premium_subscribers ?? 0;
   const enterprise = dashboardStats?.enterprise_subscribers ?? 0;
   const openComplaints = dashboardStats?.open_complaints ?? 0;
-  const monthlyData = dashboardStats?.monthly_data || [];
-  const max = Math.max(...monthlyData.map(d => d.subs), 1);
+  const max = Math.max(...(monthlyData.length ? monthlyData.map(d => d.subs) : [1]));
 
   return (
     <div>
@@ -598,6 +597,7 @@ export default function AdminPanel() {
   const [complaints, setComplaints] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [dashboardStats, setDashboardStats] = useState(null);
+  const [monthlyData, setMonthlyData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const openComplaints = complaints.filter(c => c.status === "open").length;
@@ -618,6 +618,8 @@ export default function AdminPanel() {
         console.error("Failed to load admin data:", err);
         setLoading(false);
       });
+
+    apiAdminMonthlyStats().then(setMonthlyData).catch(console.error);
   }, []);
 
   if (loading) return <div style={{ color: "#fff", padding: "4rem", textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontSize: "2rem" }}>LOADING...</div>;
@@ -720,7 +722,7 @@ export default function AdminPanel() {
 
           {/* Content */}
           <div style={{ flex: 1, padding: "2.5rem 2rem", maxWidth: 1200, width: "100%" }}>
-            {active === "dashboard" && <DashboardSection users={users} complaints={complaints} dashboardStats={dashboardStats} />}
+            {active === "dashboard" && <DashboardSection users={users} complaints={complaints} dashboardStats={dashboardStats} monthlyData={monthlyData} />}
             {active === "users" && <UsersSection users={users} setUsers={setUsers} />}
             {active === "support" && <AdminSupportSection employees={employees} setEmployees={setEmployees} />}
             {active === "complaints" && <ComplaintsSection complaints={complaints} setComplaints={setComplaints} />}

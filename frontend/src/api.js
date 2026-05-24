@@ -263,3 +263,11 @@ export const apiAdminGetSubscriptions = async () => {
   if (!res.ok) throw await res.json();
   return res.json();
 };
+
+export const apiAdminMonthlyStats = async () => {
+  const res = await fetch(`${BASE_URL}/admin/monthly-stats`, {
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw await res.json();
+  return res.json();
+};
