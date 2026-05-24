@@ -38,12 +38,12 @@ class VehicleOut(BaseModel):
 
 class UserOut(BaseModel):
     id: int
-    name: str
+    name: Optional[str] = None
     email: str
     role: str = "owner"
-    avatar: Optional[str]
-    plan: str
-    is_active: bool
+    plan: str = "Free Trial"
+    is_active: bool = True
+    avatar: Optional[str] = None
     created_at: datetime
     class Config: from_attributes = True
 
