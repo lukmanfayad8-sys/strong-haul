@@ -1,7 +1,7 @@
 import { useAuth } from "../context/AuthContext.jsx";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiGetMyVehicles, apiCreateVehicle, apiUpdateVehicle, apiDeleteVehicle, apiUploadVehicleImage, apiCancelSubscription, apiInitiatePayment, apiSubmitComplaint, apiGetNotifications, apiMarkNotificationRead, apiMarkAllNotificationsRead, apiDeleteAccount } from "../api";
+import { apiGetMyVehicles, apiCreateVehicle, apiUpdateVehicle, apiDeleteVehicle, apiUploadVehicleImage, apiCancelSubscription, apiInitiatePayment, apiSubmitComplaint, apiGetNotifications, apiMarkNotificationRead, apiMarkAllNotificationsRead, apiDeleteAccount, apiUpdateProfile } from "../api";
 
 const OWNER = {
   name: "Kwame Asante",
@@ -34,6 +34,7 @@ export default function OwnerDashboard() {
   const [profileForm, setProfileForm] = useState({ name: user?.name ?? "", username: user?.email?.split("@")[0] ?? "", email: user?.email ?? "", password: "", confirm: "" });
   const [supportForm, setSupportForm] = useState({ subject: "", category: "General Enquiry", message: "" });
   const [supportSent, setSupportSent] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [newVehicle, setNewVehicle] = useState({ name: "", type: "Tipper Truck", capacity: "", location: "", phone: "", reg: "", image_url: "" });
   const [vehicleErrors, setVehicleErrors] = useState({});
   const [errors, setErrors] = useState({});
@@ -160,6 +161,23 @@ export default function OwnerDashboard() {
     } catch (err) {
       console.error("Failed to delete account:", err);
       alert(err.detail || "Failed to delete account. Please try again.");
+    }
+  };
+
+  const handleSave = async () => {
+    const e = {};
+    if (!profileForm.name.trim()) e.name = "Required";
+    if (profileForm.password && profileForm.password.length < 6) e.password = "Min 6 characters";
+    if (profileForm.password && profileForm.password !== profileForm.confirm) e.confirm = "Passwords do not match";
+    if (Object.keys(e).length) { setErrors(e); return; }
+    try {
+      const updated = await apiUpdateProfile(profileForm.name, profileForm.password);
+      login({ ...user, name: updated.name }, localStorage.getItem("sh_token"));
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error("Save failed:", err);
+      alert(err.detail || "Failed to save changes.");
     }
   };
 
@@ -574,13 +592,15 @@ export default function OwnerDashboard() {
                   </div>
 
                   <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                    {[["Username", "username", "text"], ["Email Address", "email", "email"], ["New Password", "password", "password"]].map(([label, field, type]) => (
+                    {[["Full Name", "name", "text"], ["Username", "username", "text"], ["Email Address", "email", "email"], ["New Password", "password", "password"], ["Confirm Password", "confirm", "password"]].map(([label, field, type]) => (
                       <div key={field}>
                         <label style={{ color: "#9CA3AF", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "0.4rem" }}>{label}</label>
-                        <input className="dash-input" type={type} value={profileForm[field]} placeholder={type === "password" ? "Leave blank to keep current" : ""} onChange={e => setProfileForm(f => ({ ...f, [field]: e.target.value }))} />
+                        <input className={`dash-input ${errors[field] ? "error" : ""}`} type={type} value={profileForm[field]} placeholder={type === "password" ? "Leave blank to keep current" : ""} onChange={e => setProfileForm(f => ({ ...f, [field]: e.target.value }))} />
+                        {errors[field] && <p style={{ color: "#ef4444", fontSize: "0.75rem", marginTop: "0.25rem" }}>{errors[field]}</p>}
                       </div>
                     ))}
-                    <button className="btn-primary" style={{ marginTop: "0.5rem" }}>Save Changes</button>
+                    {saved && <p style={{ color: "#10b981", fontSize: "0.85rem", textAlign: "center" }}>✓ Changes saved</p>}
+                    <button className="btn-primary" style={{ marginTop: "0.5rem" }} onClick={handleSave}>Save Changes</button>
                   </div>
                 </div>
 

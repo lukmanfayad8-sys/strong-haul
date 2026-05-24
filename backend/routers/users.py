@@ -98,6 +98,15 @@ def get_me(current_user: User = Depends(get_current_user)):
 
 @router.delete("/me")
 def delete_me(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    from models import Vehicle, Notification, Complaint, Subscription
+    
+    # Delete all related records first
+    db.query(Notification).filter(Notification.user_id == current_user.id).delete()
+    db.query(Complaint).filter(Complaint.user_id == current_user.id).delete()
+    db.query(Subscription).filter(Subscription.user_id == current_user.id).delete()
+    db.query(Vehicle).filter(Vehicle.owner_id == current_user.id).delete()
+    
+    # Now delete the user
     db.delete(current_user)
     db.commit()
     return {"message": "Account deleted"}

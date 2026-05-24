@@ -55,6 +55,19 @@ export const apiDeleteAccount = async () => {
   return res.json();
 };
 
+export const apiUpdateProfile = async (name, password) => {
+  const res = await fetch(`${BASE_URL}/users/me`, {
+    method: "PATCH",
+    headers: authHeaders(),
+    body: JSON.stringify({ 
+      name, 
+      ...(password ? { password } : {}) 
+    }),
+  });
+  if (!res.ok) throw await res.json();
+  return res.json();
+};
+
 // ── Vehicles ──────────────────────────────────────────────────────────────────
 export const apiGetAllVehicles = async () => {
   const res = await fetch(`${BASE_URL}/vehicles/`);
