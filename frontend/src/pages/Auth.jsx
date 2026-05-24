@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext";
-import { apiRegister, apiLogin, apiGoogleAuth } from "../api";
+import { apiRegister, apiLogin, apiGoogleAuth, apiGetMe } from "../api";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -41,7 +41,14 @@ export default function Auth() {
     try {
       const data = await apiLogin(form.email, form.password);
       login(data.user, data.access_token);
-      const destination = data.user.role === "admin" ? "/admin" : "/dashboard";
+      let userToUse = data.user;
+      try {
+        userToUse = await apiGetMe();
+        login(userToUse, data.access_token);
+      } catch (refreshErr) {
+        console.warn("Failed to refresh user after login:", refreshErr);
+      }
+      const destination = userToUse.role === "admin" ? "/admin" : "/dashboard";
       navigate(destination);
     } catch (err) {
       setAuthError(err?.detail || "Login failed");
@@ -76,7 +83,14 @@ export default function Auth() {
         // Save user to backend and get JWT
         const data = await apiGoogleAuth(tokenResponse.access_token);
         login(data.user, data.access_token);
-        const destination = data.user.role === "admin" ? "/admin" : "/dashboard";
+        let userToUse = data.user;
+        try {
+          userToUse = await apiGetMe();
+          login(userToUse, data.access_token);
+        } catch (refreshErr) {
+          console.warn("Failed to refresh user after Google auth:", refreshErr);
+        }
+        const destination = userToUse.role === "admin" ? "/admin" : "/dashboard";
         navigate(destination);
       } catch (err) {
         setError("Google sign-in failed. Please try again.");
