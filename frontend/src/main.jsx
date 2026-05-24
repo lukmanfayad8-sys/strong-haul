@@ -26,7 +26,7 @@ createRoot(document.getElementById("root")).render(
               <ProtectedRoute><OwnerDashboard /></ProtectedRoute>
             } />
             <Route path="/admin" element={
-              <ProtectedRoute><AdminPanel /></ProtectedRoute>
+              <ProtectedRoute adminOnly><AdminPanel /></ProtectedRoute>
             } />
           </Routes>
         </AuthProvider>
