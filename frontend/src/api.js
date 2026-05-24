@@ -46,6 +46,15 @@ export const apiGetMe = async () => {
   return res.json();
 };
 
+export const apiDeleteAccount = async () => {
+  const res = await fetch(`${BASE_URL}/users/me`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw await res.json();
+  return res.json();
+};
+
 // ── Vehicles ──────────────────────────────────────────────────────────────────
 export const apiGetAllVehicles = async () => {
   const res = await fetch(`${BASE_URL}/vehicles/`);

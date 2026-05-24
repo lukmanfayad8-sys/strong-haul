@@ -1,7 +1,7 @@
 import { useAuth } from "../context/AuthContext.jsx";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiGetMyVehicles, apiCreateVehicle, apiUpdateVehicle, apiDeleteVehicle, apiUploadVehicleImage, apiCancelSubscription, apiInitiatePayment, apiSubmitComplaint, apiGetNotifications, apiMarkNotificationRead, apiMarkAllNotificationsRead } from "../api";
+import { apiGetMyVehicles, apiCreateVehicle, apiUpdateVehicle, apiDeleteVehicle, apiUploadVehicleImage, apiCancelSubscription, apiInitiatePayment, apiSubmitComplaint, apiGetNotifications, apiMarkNotificationRead, apiMarkAllNotificationsRead, apiDeleteAccount } from "../api";
 
 const OWNER = {
   name: "Kwame Asante",
@@ -29,6 +29,7 @@ export default function OwnerDashboard() {
   const [notifications, setNotifications] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAddVehicle, setShowAddVehicle] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [profileForm, setProfileForm] = useState({ name: user?.name ?? "", username: user?.email?.split("@")[0] ?? "", email: user?.email ?? "", password: "", confirm: "" });
   const [supportForm, setSupportForm] = useState({ subject: "", category: "General Enquiry", message: "" });
@@ -148,6 +149,17 @@ export default function OwnerDashboard() {
     } catch (err) {
       console.error("Failed to submit complaint:", err);
       alert(err.detail || "Failed to submit. Please try again.");
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await apiDeleteAccount();
+      logout();
+      navigate("/");
+    } catch (err) {
+      console.error("Failed to delete account:", err);
+      alert(err.detail || "Failed to delete account. Please try again.");
     }
   };
 
@@ -576,7 +588,7 @@ export default function OwnerDashboard() {
                 <div style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.2)", padding: "1.5rem" }}>
                   <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "1.2rem", color: "#ef4444", marginBottom: "0.5rem" }}>Danger Zone</h3>
                   <p style={{ color: "#9CA3AF", fontSize: "0.85rem", marginBottom: "1rem" }}>Deleting your account is permanent and cannot be undone.</p>
-                  <button className="btn-danger">Delete Account</button>
+                  <button className="btn-danger" onClick={() => setShowDeleteModal(true)}>Delete Account</button>
                 </div>
               </div>
             )}
@@ -678,6 +690,20 @@ export default function OwnerDashboard() {
                 <button className="btn-primary" style={{ flex: 1 }} onClick={addVehicle}>Add Vehicle</button>
                 <button className="btn-outline" style={{ flex: 1 }} onClick={() => setShowAddVehicle(false)}>Cancel</button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE ACCOUNT MODAL */}
+      {showDeleteModal && (
+        <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
+            <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "1.4rem", marginBottom: "1rem", color: "#ef4444" }}>Delete Account?</h2>
+            <p style={{ color: "#9CA3AF", fontSize: "0.9rem", marginBottom: "1.5rem", lineHeight: 1.6 }}>This action is permanent and cannot be undone. All your data, vehicles, and listings will be deleted.</p>
+            <div style={{ display: "flex", gap: "0.75rem" }}>
+              <button className="btn-danger" style={{ flex: 1 }} onClick={handleDelete}>DELETE</button>
+              <button className="btn-outline" style={{ flex: 1 }} onClick={() => setShowDeleteModal(false)}>Cancel</button>
             </div>
           </div>
         </div>
