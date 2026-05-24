@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiInitiatePayment, apiVerifyPayment, apiGetMySubscription } from "../api";
 import { useAuth } from "../context/AuthContext";
+import { detectCurrency, formatPrice, PLAN_PRICES } from "../utils/currency";
 
 const PLANS = [
   {
@@ -98,6 +99,7 @@ export default function Subscription() {
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [cardForm, setCardForm] = useState({ name: "", number: "", expiry: "", cvv: "" });
   const [processing, setProcessing] = useState(false);
+  const [currency, setCurrency] = useState({ code: "USD", symbol: "$", name: "US Dollar" });
   const [currentPlan, setCurrentPlan] = useState(user?.plan ?? "Free Trial");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -124,7 +126,16 @@ export default function Subscription() {
     return val.replace(/\D/g, "").replace(/(\d{2})(\d)/, "$1/$2").slice(0, 5);
   };
 
+  const getPlanPrice = (planName) => {
+    const prices = PLAN_PRICES[currency.code] ?? PLAN_PRICES["USD"];
+    const price = prices[planName];
+    if (!price || price === "Custom" || planName === "Free Trial") return planName === "Free Trial" ? "Free" : "Custom";
+    return formatPrice(price, currency);
+  };
+
   useEffect(() => {
+    detectCurrency().then(setCurrency);
+    
     const params = new URLSearchParams(window.location.search);
     const reference = params.get("reference") || params.get("trxref");
     const payment = params.get("payment");
@@ -239,6 +250,9 @@ export default function Subscription() {
           <p style={{ color: "#9CA3AF", fontSize: "1.05rem", maxWidth: 480, margin: "0 auto 2.5rem", lineHeight: 1.7 }}>
             Choose the plan that fits your fleet. No hidden fees. Cancel anytime.
           </p>
+          <p style={{ color: "#6B7280", fontSize: "0.82rem", marginTop: "0.25rem" }}>
+            Prices shown in {currency.name} ({currency.code})
+          </p>
 
           {/* Billing Toggle */}
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
@@ -273,7 +287,7 @@ export default function Subscription() {
                   <div style={{ color: plan.color, fontSize: "0.75rem", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem" }}>{plan.name}</div>
                   <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem", marginBottom: "0.5rem" }}>
                     <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "3.5rem", color: plan.color, lineHeight: 1 }}>
-                      {plan.price === 0 ? "Free" : plan.price === null ? (plan.id === "enterprise" ? "Custom" : "TBD") : `$${plan.price}`}
+                      {getPlanPrice(plan.name)}
                     </span>
                     {plan.price !== 0 && <span style={{ color: "#6B7280", fontSize: "0.82rem", paddingBottom: "0.5rem" }}>/ {plan.period}</span>}
                   </div>

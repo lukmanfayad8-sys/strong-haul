@@ -1,6 +1,7 @@
 // Add at the top of App.jsx
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
+import { detectCurrency, formatPrice, PLAN_PRICES } from "./utils/currency";
 
 const NAV_LINKS = ["Home", "Browse Trucks", "How It Works", "Pricing", "Contact"];
 
@@ -93,9 +94,14 @@ export default function App() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [statsVisible, setStatsVisible] = useState(false);
+  const [currency, setCurrency] = useState({ code: "USD", symbol: "$", name: "US Dollar" });
   const statsRef = useRef(null);
   const navigate = useNavigate(); // ← ADD THIS LINE
 
+
+  useEffect(() => {
+    detectCurrency().then(setCurrency);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);
@@ -379,13 +385,16 @@ export default function App() {
             <p style={{ color: "#9CA3AF", marginTop: "1rem" }}>List your vehicles and get discovered by hirers worldwide</p>
           </div>
           <div className="plans-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.5rem", alignItems: "start" }}>
-            {PLANS.map((plan, i) => (
+            {PLANS.map((plan, i) => {
+              const prices = PLAN_PRICES[currency.code] ?? PLAN_PRICES["USD"];
+              const displayPrice = plan.name === "Free Trial" ? "Free" : plan.name === "Enterprise" ? "Custom" : formatPrice(prices[plan.name], currency);
+              return (
               <div key={i} className={`plan-card ${plan.highlight ? "highlight" : ""}`}>
                 {plan.badge && (
                   <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: "#F97316", color: "#fff", fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.1em", padding: "0.3rem 1rem", whiteSpace: "nowrap" }}>{plan.badge}</div>
                 )}
                 <div style={{ color: "#9CA3AF", fontSize: "0.82rem", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "1rem" }}>{plan.name}</div>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "3rem", color: plan.highlight ? "#F97316" : "#fff", lineHeight: 1 }}>{plan.price}</div>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "3rem", color: plan.highlight ? "#F97316" : "#fff", lineHeight: 1 }}>{displayPrice}</div>
                 <div style={{ color: "#6B7280", fontSize: "0.82rem", marginBottom: "2rem" }}>{plan.period}</div>
                 <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "1.5rem", marginBottom: "2rem" }}>
                   {plan.features.map((f, j) => (
@@ -397,7 +406,7 @@ export default function App() {
                 </div>
                 <button className={plan.highlight ? "btn-primary" : "btn-outline"} style={{ width: "100%" }}>{plan.cta}</button>
               </div>
-            ))}
+            );})}
           </div>
         </div>
       </section>
