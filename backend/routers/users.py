@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
+from typing import Optional
+from pydantic import BaseModel
 import httpx
 from passlib.context import CryptContext
 from database import get_db
@@ -8,6 +10,10 @@ from schemas import TokenOut, UserOut, UserLogin, UserRegister
 from auth import create_access_token, decode_token
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    password: Optional[str] = None
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -94,6 +100,20 @@ def login(payload: UserLogin, db: Session = Depends(get_db)):
 
 @router.get("/me", response_model=UserOut)
 def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+@router.patch("/me", response_model=UserOut)
+def update_me(
+    payload: UserUpdate, 
+    current_user: User = Depends(get_current_user), 
+    db: Session = Depends(get_db)
+):
+    if payload.name:
+        current_user.name = payload.name
+    if payload.password:
+        current_user.password_hash = pwd_context.hash(payload.password)
+    db.commit()
+    db.refresh(current_user)
     return current_user
 
 @router.delete("/me")
