@@ -264,6 +264,16 @@ export const apiAdminGetSubscriptions = async () => {
   return res.json();
 };
 
+export const apiAdminUpdatePrice = async (plan, price) => {
+  const res = await fetch(`${BASE_URL}/admin/subscriptions/price`, {
+    method: "PATCH",
+    headers: authHeaders(),
+    body: JSON.stringify({ plan, price }),
+  });
+  if (!res.ok) throw await res.json();
+  return res.json();
+};
+
 export const apiAdminGetEmployees = async () => {
   const res = await fetch(`${BASE_URL}/admin/employees`, {
     headers: authHeaders(),

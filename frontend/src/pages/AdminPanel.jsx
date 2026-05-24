@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiAdminDashboard, apiAdminGetUsers, apiAdminToggleUser, apiAdminGetComplaints, apiAdminResolveComplaint, apiAdminSendAnnouncement, apiAdminGetSubscriptions, apiAdminMonthlyStats, apiAdminGetEmployees, apiAdminAddEmployee, apiAdminToggleEmployee } from "../api";
+import { apiAdminDashboard, apiAdminGetUsers, apiAdminToggleUser, apiAdminGetComplaints, apiAdminResolveComplaint, apiAdminSendAnnouncement, apiAdminGetSubscriptions, apiAdminUpdatePrice, apiAdminMonthlyStats, apiAdminGetEmployees, apiAdminAddEmployee, apiAdminToggleEmployee } from "../api";
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 const SUPER_ADMIN = { name: "Admin", username: "superadmin", role: "Super Admin", avatar: "A" };
@@ -530,21 +530,30 @@ function AnnouncementsSection() {
   );
 }
 
-function SubscriptionsSection({ users }) {
+function SubscriptionsSection({ subscriptions }) {
   const [prices, setPrices] = useState({ Premium: "29", Enterprise: "Custom" });
   const [editing, setEditing] = useState(null);
   const [tempPrice, setTempPrice] = useState("");
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
 
-  const subs = users.filter(u => u.plan !== "Free Trial");
-  const filtered = subs.filter(u => !search || u.username.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()));
+  const subs = subscriptions.filter(u => u.plan !== "Free Trial");
+  const filtered = subs.filter(u => !search || u.email?.toLowerCase().includes(search.toLowerCase()) || u.plan?.toLowerCase().includes(search.toLowerCase()));
 
-  const savePrice = (plan) => {
-    setPrices(p => ({ ...p, [plan]: tempPrice }));
-    setEditing(null);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const savePrice = async (plan) => {
+    if (!tempPrice) return;
+    setError("");
+    try {
+      await apiAdminUpdatePrice(plan, tempPrice);
+      setPrices(p => ({ ...p, [plan]: tempPrice }));
+      setEditing(null);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error("Failed to update price:", err);
+      setError(err?.detail || "Unable to update price");
+    }
   };
 
   return (
@@ -589,17 +598,15 @@ function SubscriptionsSection({ users }) {
       <div style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr>{["Username", "Email", "Plan", "Status", "Listings", "Joined"].map(h => <th key={h} style={TH}>{h}</th>)}</tr>
+            <tr>{["Email", "Plan", "Status", "Started"].map(h => <th key={h} style={TH}>{h}</th>)}</tr>
           </thead>
           <tbody>
             {filtered.map((u, i) => (
               <tr key={u.id} style={{ background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)" }}>
-                <td style={{ ...TD, fontWeight: 600 }}>@{u.username}</td>
                 <td style={{ ...TD, color: "#9CA3AF" }}>{u.email}</td>
                 <td style={TD}><span style={{ color: PLAN_COLOR[u.plan], fontWeight: 700 }}>{u.plan}</span></td>
-                <td style={TD}><span style={STATUS_STYLE(u.status)}>{u.status}</span></td>
-                <td style={{ ...TD, textAlign: "center" }}>{u.listings}</td>
-                <td style={{ ...TD, color: "#6B7280" }}>{u.joined}</td>
+                <td style={TD}><span style={STATUS_STYLE(u.is_active ? "active" : "inactive")}>{u.is_active ? "active" : "inactive"}</span></td>
+                <td style={{ ...TD, color: "#6B7280" }}>{u.created_at ? new Date(u.created_at).toLocaleDateString() : "-"}</td>
               </tr>
             ))}
           </tbody>
@@ -617,6 +624,7 @@ export default function AdminPanel() {
   const [users, setUsers] = useState([]);
   const [complaints, setComplaints] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [subscriptions, setSubscriptions] = useState([]);
   const [dashboardStats, setDashboardStats] = useState(null);
   const [monthlyData, setMonthlyData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -642,6 +650,7 @@ export default function AdminPanel() {
 
     apiAdminMonthlyStats().then(setMonthlyData).catch(console.error);
     apiAdminGetEmployees().then(setEmployees).catch(console.error);
+    apiAdminGetSubscriptions().then(setSubscriptions).catch(console.error);
   }, []);
 
   if (loading) return <div style={{ color: "#fff", padding: "4rem", textAlign: "center", fontFamily: "'Barlow Condensed', sans-serif", fontSize: "2rem" }}>LOADING...</div>;
@@ -750,7 +759,7 @@ export default function AdminPanel() {
             {active === "complaints" && <ComplaintsSection complaints={complaints} setComplaints={setComplaints} />}
             {active === "employees" && <EmployeesSection employees={employees} setEmployees={setEmployees} />}
             {active === "announcements" && <AnnouncementsSection />}
-            {active === "subscriptions" && <SubscriptionsSection users={users} setUsers={setUsers} />}
+            {active === "subscriptions" && <SubscriptionsSection subscriptions={subscriptions} />}
           </div>
         </main>
       </div>

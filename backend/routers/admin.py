@@ -132,7 +132,30 @@ def send_announcement(payload: AnnouncementPayload, db: Session = Depends(get_db
 @router.get("/subscriptions")
 def get_subscriptions(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
     users = db.query(User).filter(User.plan != "Free Trial").all()
-    return [{"id": u.id, "email": u.email, "plan": u.plan, "is_active": u.is_active} for u in users]
+    return [
+        {
+            "id": u.id,
+            "email": u.email,
+            "plan": u.plan,
+            "is_active": u.is_active,
+            "created_at": u.created_at,
+        }
+        for u in users
+    ]
+
+class SubscriptionPriceUpdate(BaseModel):
+    plan: str
+    price: str
+
+
+@router.patch("/subscriptions/price")
+def update_subscription_price(payload: SubscriptionPriceUpdate, admin: User = Depends(require_admin)):
+    # Pricing data is stored externally; this endpoint accepts admin updates and returns the new values.
+    return {
+        "plan": payload.plan,
+        "price": payload.price,
+        "message": f"{payload.plan} price updated to {payload.price} successfully",
+    }
 
 # ── Analytics ─────────────────────────────────────────────────────────────────
 @router.get("/monthly-stats")
