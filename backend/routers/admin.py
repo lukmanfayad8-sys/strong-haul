@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
-from models import User, Vehicle, Complaint, Notification
+from models import User, Vehicle, Complaint, Notification, SubscriptionPrice
 from schemas import UserOut, ComplaintOut, ComplaintCreate
 from routers.users import get_current_user
 from typing import List
@@ -9,8 +9,7 @@ from pydantic import BaseModel
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
-# Module-level subscription prices
-_subscription_prices = {
+DEFAULT_SUBSCRIPTION_PRICES = {
     "Premium": "29000",
     "Enterprise": "99000",
 }
@@ -163,17 +162,36 @@ class SubscriptionPriceUpdate(BaseModel):
     price: str
 
 
+def seed_subscription_prices(db: Session):
+    existing = db.query(SubscriptionPrice).all()
+    if existing:
+        return existing
+    for plan, price in DEFAULT_SUBSCRIPTION_PRICES.items():
+        db.add(SubscriptionPrice(plan=plan, price=price))
+    db.commit()
+    return db.query(SubscriptionPrice).all()
+
+
 @router.get("/subscriptions/prices")
-def get_subscription_prices(admin: User = Depends(require_admin)):
-    return _subscription_prices
+def get_subscription_prices(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+    prices = seed_subscription_prices(db)
+    return {p.plan: p.price for p in prices}
 
 
 @router.patch("/subscriptions/price")
-def update_subscription_price(payload: SubscriptionPriceUpdate, admin: User = Depends(require_super_admin)):
-    # Update in-memory subscription price mapping
-    plan = payload.plan
-    price = payload.price
-    _subscription_prices[plan] = price
+def update_subscription_price(payload: SubscriptionPriceUpdate, db: Session = Depends(get_db), admin: User = Depends(require_super_admin)):
+    plan = payload.plan.strip()
+    price = payload.price.strip()
+    if not plan or not price:
+        raise HTTPException(status_code=400, detail="Plan and price are required")
+
+    subscription_price = db.query(SubscriptionPrice).filter(SubscriptionPrice.plan == plan).first()
+    if subscription_price:
+        subscription_price.price = price
+    else:
+        subscription_price = SubscriptionPrice(plan=plan, price=price)
+        db.add(subscription_price)
+    db.commit()
     return {
         "plan": plan,
         "price": price,

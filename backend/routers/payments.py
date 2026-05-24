@@ -38,8 +38,6 @@ def initiate_subscription(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    print("Received plan:", payload.plan)
-    print("Plan codes:", PLAN_CODES)
     if payload.plan not in PLAN_CODES:
         raise HTTPException(status_code=400, detail="Invalid plan")
 
@@ -58,8 +56,6 @@ def initiate_subscription(
             }
         }
     )
-
-    print("Paystack response:", res.status_code, res.json())
 
     if res.status_code != 200:
         raise HTTPException(status_code=400, detail="Failed to initiate payment")
@@ -161,6 +157,9 @@ def cancel_subscription(
 
 @router.post("/webhook")
 async def paystack_webhook(request: Request, db: Session = Depends(get_db)):
+    # NOTE: Register the live webhook URL (/payments/webhook) in the Paystack dashboard.
+    # The PAYSTACK_SECRET_KEY environment variable must be the live secret key,
+    # not the test key, for webhook signature verification to work.
     # Verify webhook signature
     body = await request.body()
     signature = request.headers.get("x-paystack-signature")

@@ -1,10 +1,38 @@
+import os
+from urllib.parse import urlparse
+
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 from fastapi.security import HTTPBearer
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 from database import engine, Base
 import models
 from routers import users, vehicles, admin, payments, uploads, complaints, notifications
+
+load_dotenv()
+
+REQUIRED_ENV_VARS = [
+    "PAYSTACK_SECRET_KEY",
+    "CLOUDINARY_CLOUD_NAME",
+    "CLOUDINARY_API_KEY",
+    "CLOUDINARY_API_SECRET",
+    "FRONTEND_URL",
+    "SECRET_KEY",
+]
+
+missing_vars = [name for name in REQUIRED_ENV_VARS if not os.getenv(name)]
+if missing_vars:
+    raise RuntimeError(
+        "Missing required environment variables: " + ", ".join(missing_vars) + ". "
+        "Set them before starting the server."
+    )
+
+frontend_url = os.getenv("FRONTEND_URL").strip()
+parsed_url = urlparse(frontend_url)
+if parsed_url.scheme not in ("http", "https") or not parsed_url.netloc:
+    raise RuntimeError("FRONTEND_URL must be a valid http:// or https:// URL.")
+frontend_origin = f"{parsed_url.scheme}://{parsed_url.netloc}"
 
 Base.metadata.create_all(bind=engine)
 
@@ -37,7 +65,7 @@ app.openapi = custom_openapi
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[frontend_origin],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

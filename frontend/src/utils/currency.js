@@ -29,6 +29,9 @@ export const detectCurrency = async () => {
 };
 
 export const formatPrice = (amount, currency) => {
+  if (amount === "TBD" || amount == null) {
+    return `${currency.symbol}29`;
+  }
   return `${currency.symbol}${amount}`;
 };
 

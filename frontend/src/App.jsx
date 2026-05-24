@@ -2,6 +2,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { detectCurrency, formatPrice, PLAN_PRICES } from "./utils/currency";
+import { apiGetAllVehicles } from "./api";
 
 const NAV_LINKS = ["Home", "Browse Trucks", "How It Works", "Pricing", "Contact"];
 
@@ -12,12 +13,6 @@ const STATS = [
   { value: 3, suffix: "", label: "Subscription Tiers" },
 ];
 
-const LISTINGS = [
-  { name: "Mack Granite Tipper", type: "Tipper Truck", capacity: "30 tons", location: "Accra, Ghana", available: true, tier: "Premium" },
-  { name: "Caterpillar 320 Excavator", type: "Excavator", capacity: "22 tons", location: "Lagos, Nigeria", available: true, tier: "Enterprise" },
-  { name: "Mercedes Actros Flatbed", type: "Flatbed Truck", capacity: "25 tons", location: "Nairobi, Kenya", available: false, tier: "Premium" },
-  { name: "Volvo FH16 Tanker", type: "Tanker Truck", capacity: "40 tons", location: "Johannesburg, SA", available: true, tier: "Premium" },
-];
 
 const FEATURES = [
   { icon: "🌍", title: "Global Reach", desc: "List once. Get discovered by hirers across 30+ countries worldwide." },
@@ -95,9 +90,52 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [statsVisible, setStatsVisible] = useState(false);
   const [currency, setCurrency] = useState({ code: "USD", symbol: "$", name: "US Dollar" });
+  const [listings, setListings] = useState([]);
+  const [listingsLoading, setListingsLoading] = useState(true);
   const statsRef = useRef(null);
-  const navigate = useNavigate(); // ← ADD THIS LINE
+  const howRef = useRef(null);
+  const footerRef = useRef(null);
+  const navigate = useNavigate();
 
+  const handleNavClick = (link) => {
+    setMenuOpen(false);
+    if (link === "Home") {
+      document.getElementById("home")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    if (link === "How It Works") {
+      howRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    if (link === "Contact") {
+      footerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    if (link === "Browse Trucks") {
+      navigate("/browse");
+      return;
+    }
+    if (link === "Pricing") {
+      navigate("/subscription");
+    }
+  };
+
+  const displayListings = listingsLoading ? Array.from({ length: 4 }, () => ({})) : listings;
+
+  useEffect(() => {
+    const loadListings = async () => {
+      try {
+        const data = await apiGetAllVehicles(4);
+        setListings(data || []);
+      } catch (err) {
+        console.error("Failed to load listings:", err);
+      } finally {
+        setListingsLoading(false);
+      }
+    };
+
+    loadListings();
+  }, []);
 
   useEffect(() => {
     detectCurrency().then(setCurrency);
@@ -210,11 +248,8 @@ export default function App() {
         {/* Desktop Nav */}
         <div className="desktop-nav" style={{ display: "flex", gap: "2rem", alignItems: "center" }}>
           {NAV_LINKS.map(link => (
-  <a key={link} className="nav-link" onClick={() => {
-    if (link === "Browse Trucks") navigate("/browse");
-    if (link === "Pricing") navigate("/subscription");
-  }}>{link}</a>
-))}
+            <a key={link} className="nav-link" onClick={() => handleNavClick(link)}>{link}</a>
+          ))}
         </div>
 
         
@@ -234,13 +269,15 @@ export default function App() {
       {/* Mobile Menu */}
       {menuOpen && (
         <div style={{ position: "fixed", top: 70, left: 0, right: 0, background: "#111827", zIndex: 99, padding: "1.5rem 2rem", display: "flex", flexDirection: "column", gap: "1.25rem", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-          {NAV_LINKS.map(link => <a key={link} className="nav-link" style={{ fontSize: "1rem" }}>{link}</a>)}
-          <button className="btn-primary" style={{ marginTop: "0.5rem" }}>List Your Truck</button>
+          {NAV_LINKS.map(link => (
+            <a key={link} className="nav-link" style={{ fontSize: "1rem" }} onClick={() => handleNavClick(link)}>{link}</a>
+          ))}
+          <button className="btn-primary" style={{ marginTop: "0.5rem" }} onClick={() => { setMenuOpen(false); navigate("/auth"); }}>List Your Truck</button>
         </div>
       )}
 
       {/* HERO */}
-      <section style={{
+      <section id="home" style={{
         minHeight: "100vh", display: "flex", alignItems: "center", position: "relative",
         background: "linear-gradient(135deg, #0A0A0A 0%, #0f1a0a 50%, #0A0A0A 100%)",
         overflow: "hidden", paddingTop: "6rem"
@@ -296,7 +333,7 @@ export default function App() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section style={{ padding: "6rem 2rem", maxWidth: 1200, margin: "0 auto" }}>
+      <section id="how-it-works" ref={howRef} style={{ padding: "6rem 2rem", maxWidth: 1200, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: "4rem" }}>
           <span className="section-tag">Process</span>
           <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "clamp(2.5rem, 5vw, 4rem)", letterSpacing: "-0.01em" }}>HOW STRONG HAUL WORKS</h2>
@@ -342,17 +379,29 @@ export default function App() {
           </div>
 
           <div className="listings-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1.25rem" }}>
-            {LISTINGS.map((l, i) => (
+            {displayListings.map((l, i) => (
               <div key={i} className="listing-card">
-                <div style={{ background: "#0A0A0A", height: 120, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1rem", fontSize: "3rem" }}>🚛</div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-                  <span style={{ background: l.available ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)", color: l.available ? "#22c55e" : "#ef4444", fontSize: "0.72rem", padding: "0.2rem 0.6rem", fontWeight: 600, letterSpacing: "0.05em" }}>{l.available ? "AVAILABLE" : "UNAVAILABLE"}</span>
-                  <span style={{ background: "rgba(249,115,22,0.15)", color: "#F97316", fontSize: "0.72rem", padding: "0.2rem 0.6rem", fontWeight: 600 }}>{l.tier}</span>
+                <div style={{ background: "#0A0A0A", height: 120, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1rem", fontSize: "3rem" }}>
+                  {listingsLoading ? <div style={{ width: "100%", height: "100%", background: "rgba(255,255,255,0.08)", borderRadius: 16 }} /> : "🚛"}
                 </div>
-                <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "1.2rem", marginBottom: "0.25rem" }}>{l.name}</h3>
-                <p style={{ color: "#9CA3AF", fontSize: "0.82rem", marginBottom: "0.25rem" }}>{l.type} · {l.capacity}</p>
-                <p style={{ color: "#6B7280", fontSize: "0.8rem", marginBottom: "1rem" }}>📍 {l.location}</p>
-                <button className="btn-primary" style={{ width: "100%", padding: "0.6rem", fontSize: "0.82rem" }}>Contact Owner</button>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                  <span style={{ background: listingsLoading ? "rgba(255,255,255,0.08)" : ((l.available ?? l.online ?? false) ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)"), color: listingsLoading ? "#9CA3AF" : ((l.available ?? l.online ?? false) ? "#22c55e" : "#ef4444"), fontSize: "0.72rem", padding: "0.2rem 0.6rem", fontWeight: 600, letterSpacing: "0.05em" }}>
+                    {listingsLoading ? "Loading..." : ((l.available ?? l.online ?? false) ? "AVAILABLE" : "UNAVAILABLE")}
+                  </span>
+                  <span style={{ background: "rgba(249,115,22,0.15)", color: "#F97316", fontSize: "0.72rem", padding: "0.2rem 0.6rem", fontWeight: 600 }}>
+                    {listingsLoading ? "Premium" : (l.tier ?? l.plan ?? "Premium")}
+                  </span>
+                </div>
+                <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "1.2rem", marginBottom: "0.25rem" }}>
+                  {listingsLoading ? <span style={{ display: "inline-block", width: "80%", height: 24, background: "rgba(255,255,255,0.08)", borderRadius: 8 }} /> : l.name}
+                </h3>
+                <p style={{ color: "#9CA3AF", fontSize: "0.82rem", marginBottom: "0.25rem" }}>
+                  {listingsLoading ? <span style={{ display: "inline-block", width: "60%", height: 18, background: "rgba(255,255,255,0.08)", borderRadius: 8 }} /> : `${l.type} · ${l.capacity}`}
+                </p>
+                <p style={{ color: "#6B7280", fontSize: "0.8rem", marginBottom: "1rem" }}>
+                  {listingsLoading ? <span style={{ display: "inline-block", width: "50%", height: 18, background: "rgba(255,255,255,0.08)", borderRadius: 8 }} /> : `📍 ${l.location}`}
+                </p>
+                <button className="btn-primary" style={{ width: "100%", padding: "0.6rem", fontSize: "0.82rem" }} disabled={listingsLoading}>{listingsLoading ? "Loading" : "Contact Owner"}</button>
               </div>
             ))}
           </div>
@@ -449,7 +498,7 @@ export default function App() {
       </section>
 
       {/* FOOTER */}
-      <footer style={{ background: "#0A0A0A", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "4rem 2rem 2rem" }}>
+      <footer id="contact" ref={footerRef} style={{ background: "#0A0A0A", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "4rem 2rem 2rem" }}>
         <div className="footer-grid" style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: "3rem", marginBottom: "3rem" }}>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem" }}>

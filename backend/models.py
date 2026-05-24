@@ -59,6 +59,12 @@ class Subscription(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     user = relationship("User")
 
+class SubscriptionPrice(Base):
+    __tablename__ = "subscription_prices"
+    id = Column(Integer, primary_key=True, index=True)
+    plan = Column(String, unique=True, index=True)
+    price = Column(String)
+
 class Complaint(Base):
     __tablename__ = "complaints"
     id = Column(Integer, primary_key=True, index=True)

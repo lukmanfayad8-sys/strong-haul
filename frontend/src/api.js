@@ -69,8 +69,8 @@ export const apiUpdateProfile = async (name, password) => {
 };
 
 // ── Vehicles ──────────────────────────────────────────────────────────────────
-export const apiGetAllVehicles = async () => {
-  const res = await fetch(`${BASE_URL}/vehicles/`);
+export const apiGetAllVehicles = async (limit = 20) => {
+  const res = await fetch(`${BASE_URL}/vehicles/?limit=${limit}`);
   if (!res.ok) throw await res.json();
   return res.json();
 };
