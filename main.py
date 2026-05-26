@@ -1,5 +1,7 @@
+import re
 import os
 from urllib.parse import urlparse
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
@@ -36,7 +38,32 @@ frontend_origin = f"{parsed_url.scheme}://{parsed_url.netloc}"
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Strong Haul API")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    admin_email = os.getenv("ADMIN_EMAIL")
+    admin_password = os.getenv("ADMIN_PASSWORD")
+
+    if admin_email and admin_password:
+        from sqlalchemy.orm import Session
+        import bcrypt
+        with Session(engine) as db:
+            existing = db.query(models.User).filter(models.User.email == admin_email).first()
+            if not existing:
+                hashed = bcrypt.hashpw(admin_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+                admin_user = models.User(
+                    name="Admin",
+                    email=admin_email,
+                    password_hash=hashed,
+                    role="admin",
+                    is_active=True,
+                )
+                db.add(admin_user)
+                db.commit()
+                print(f"Admin user created: {admin_email}")
+            else:
+                print("Admin user already exists.")
+    yield
+app = FastAPI(title="Strong Haul API", lifespan=lifespan)
 
 security = HTTPBearer()
 
@@ -65,7 +92,11 @@ app.openapi = custom_openapi
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_origin],
+  allow_origins=[
+    frontend_origin,
+    "https://strong-haul.vercel.app",
+    "http://localhost:5173",
+ ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

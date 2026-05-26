@@ -21,8 +21,8 @@ HEADERS = {
 
 # Plan codes — create these in Paystack dashboard first
 PLAN_CODES = {
-    "Premium": "PLN_i0786oaa3nec9a6",
-    "Enterprise": "PLN_pjapp7vvkt2nddb",
+    "Premium": "PLN_0erpwyjo5r87zrv",
+    "Enterprise": "PLN_m9avegudwcyakfm",
 }
 
 PLAN_AMOUNTS = {
